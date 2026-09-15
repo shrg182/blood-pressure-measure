@@ -21,3 +21,10 @@ def test_interface_describes_camera_bp_limitation():
 
     assert "does not directly measure blood pressure" in html
     assert "validated upper-arm cuff" in html
+
+
+def test_interface_has_visible_measurement_failure_state():
+    javascript = files("blood_measure").joinpath("web", "app.js").read_text()
+
+    assert 'resultTitle.textContent = "Measurement unsuccessful"' in javascript
+    assert "result.hidden = false" in javascript

@@ -59,6 +59,9 @@ button:disabled { opacity: .55; }
 .result strong { font-size: 3rem; color: #8f2537; }
 .result span { color: #8a7378; font-weight: 700; }
 .result small { display: block; margin-top: 5px; color: #746267; }
+.result.error { border-color: #dbaeb5; background: #fff2f2; }
+.result.error > p { color: #982e42; font-weight: 750; }
+.result.error #resultQuality { color: #713e47; font-size: .86rem; line-height: 1.45; }
 
 .reference-form { margin-top: 20px; padding-top: 18px; border-top: 1px solid #ead7d5; }
 .reference-form h2, .history h2 { margin: 0; font-size: 1rem; }

@@ -10,6 +10,8 @@ const countdown = document.querySelector("#countdown");
 const qualityBar = document.querySelector("#qualityBar");
 const qualityLabel = document.querySelector("#qualityLabel");
 const result = document.querySelector("#result");
+const resultTitle = document.querySelector("#resultTitle");
+const pulseValue = document.querySelector("#pulseValue");
 const heartRate = document.querySelector("#heartRate");
 const resultQuality = document.querySelector("#resultQuality");
 const referenceForm = document.querySelector("#referenceForm");
@@ -53,6 +55,10 @@ async function startMeasurement() {
   }
   button.disabled = true;
   result.hidden = true;
+  result.classList.remove("error");
+  resultTitle.textContent = "Estimated pulse";
+  pulseValue.hidden = false;
+  referenceForm.hidden = false;
   latestReading = null;
   saveMessage.textContent = "";
   try {
@@ -125,7 +131,7 @@ function finishMeasurement() {
     result.hidden = false;
     instruction.textContent = "Reading complete. Repeat while still if the result seems unusual.";
   } catch (error) {
-    showError(error.message);
+    showMeasurementFailure(error.message);
   }
   releaseCamera();
 }
@@ -150,13 +156,19 @@ function analyzePPG(frames) {
   if (duration < 8) throw new Error("The recording was too short. Try again.");
   const intervals = frames.slice(1).map((frame, index) => frame.timestamp - frames[index].timestamp);
   const sampleRate = 1 / median(intervals);
-  const green = frames.map(frame => frame.green);
-  const clipped = green.filter(value => value <= 1 || value >= 254).length / green.length;
-  if (average(green) < 8 || clipped > .2) throw new Error("Adjust your finger to avoid a dark or overexposed image.");
+  const channels = ["red", "green", "blue"].map(name => {
+    const values = frames.map(frame => frame[name]);
+    const clipped = values.filter(value => value <= 1 || value >= 254).length / values.length;
+    return { name, values, clipped, variation: standardDeviation(values) };
+  });
+  const usableChannels = channels.filter(channel => average(channel.values) >= 8 && channel.clipped <= .35);
+  if (!usableChannels.length) throw new Error("Adjust your finger to avoid a dark or overexposed image.");
+  const selected = usableChannels.reduce((best, channel) => channel.variation > best.variation ? channel : best);
+  const signalValues = selected.values;
 
   const windowSize = Math.max(3, Math.round(sampleRate * .75));
-  const baseline = movingAverage(green, windowSize);
-  const centered = green.map((value, index) => value - baseline[index]);
+  const baseline = movingAverage(signalValues, windowSize);
+  const centered = signalValues.map((value, index) => value - baseline[index]);
   const scale = Math.sqrt(average(centered.map(value => value * value)));
   if (scale < .15) throw new Error("No reliable pulse was detected. Cover the camera and flash completely.");
   const signal = centered.map(value => value / scale);
@@ -182,6 +194,7 @@ function analyzePPG(frames) {
     quality: Math.max(0, Math.min(1, peak.value)),
     durationSeconds: duration,
     sampleRateHz: sampleRate,
+    channel: selected.name,
     waveform
   };
 }
@@ -208,6 +221,16 @@ function average(values) { return values.reduce((sum, value) => sum + value, 0) 
 function standardDeviation(values) { const mean = average(values); return Math.sqrt(average(values.map(value => (value - mean) ** 2))); }
 function median(values) { const sorted = [...values].sort((a, b) => a - b); return sorted[Math.floor(sorted.length / 2)]; }
 function showError(message) { instruction.textContent = message; qualityLabel.textContent = "Poor"; qualityBar.style.width = "0"; }
+
+function showMeasurementFailure(message) {
+  showError(message);
+  result.classList.add("error");
+  resultTitle.textContent = "Measurement unsuccessful";
+  pulseValue.hidden = true;
+  resultQuality.textContent = message;
+  referenceForm.hidden = true;
+  result.hidden = false;
+}
 
 function downsample(values, targetLength) {
   if (values.length <= targetLength) return values;
