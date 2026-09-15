@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#8f2537">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Blood Measure</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">PERSONAL REFERENCE</p>
+      <h1>Blood Measure</h1>
+      <p class="subtitle">Place your fingertip gently over the rear camera and flash.</p>
+    </header>
+
+    <section class="meter" aria-label="Measurement status">
+      <video id="camera" playsinline muted></video>
+      <canvas id="sampleCanvas" width="48" height="48" hidden></canvas>
+      <div class="fingerprint" aria-hidden="true">◎</div>
+      <div id="progress" class="progress"></div>
+      <p id="countdown" class="countdown">Ready</p>
+    </section>
+
+    <p id="instruction" class="instruction" role="status">
+      Sit comfortably and rest for a moment before starting.
+    </p>
+    <div class="quality-row">
+      <span>Signal quality</span>
+      <div class="quality-track"><div id="qualityBar"></div></div>
+      <strong id="qualityLabel">—</strong>
+    </div>
+
+    <button id="measureButton" type="button">Start measurement</button>
+
+    <section id="result" class="result" hidden>
+      <p>Estimated pulse</p>
+      <div><strong id="heartRate">—</strong> <span>BPM</span></div>
+      <small id="resultQuality"></small>
+
+      <form id="referenceForm" class="reference-form">
+        <h2>Add a cuff reference</h2>
+        <p>Take a validated upper-arm cuff reading immediately after this recording.</p>
+        <div class="bp-fields">
+          <label>Systolic<input id="systolic" type="number" inputmode="numeric" min="60" max="260" placeholder="120" required></label>
+          <span>/</span>
+          <label>Diastolic<input id="diastolic" type="number" inputmode="numeric" min="35" max="160" placeholder="80" required></label>
+          <em>mmHg</em>
+        </div>
+        <button class="secondary" type="submit">Save paired reading</button>
+        <p id="saveMessage" class="save-message" role="status"></p>
+      </form>
+    </section>
+
+    <section id="historySection" class="history" hidden>
+      <div class="section-title">
+        <h2>Paired readings</h2>
+        <span id="historyCount"></span>
+      </div>
+      <div id="historyList"></div>
+      <div class="chart-wrap">
+        <canvas id="trendChart" width="700" height="280" aria-label="Blood pressure history chart"></canvas>
+        <div class="chart-legend"><span class="sys-key">Systolic</span><span class="dia-key">Diastolic</span></div>
+      </div>
+      <div class="history-actions">
+        <button id="exportButton" class="text-button" type="button">Export JSON</button>
+        <button id="clearButton" class="text-button danger" type="button">Clear history</button>
+      </div>
+      <p class="privacy-note">Stored only in this browser. Clearing browser data will remove it.</p>
+    </section>
+
+    <button id="installButton" class="install-button" type="button" hidden>Install app</button>
+
+    <details>
+      <summary>Important limitation</summary>
+      <p>A phone camera detects a pulse waveform; it does not directly measure blood pressure. Confirm health decisions or unusual readings with a validated upper-arm cuff or a clinician.</p>
+    </details>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

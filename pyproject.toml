@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blood-measure"
+version = "0.1.0"
+description = "A simple blood pressure measurement and risk classification tool."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Copilot" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+blood-measure = "blood_measure.cli:main"
+blood-measure-web = "blood_measure.web_server:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+blood_measure = ["web/*.html", "web/*.css", "web/*.js", "web/*.webmanifest", "web/*.svg"]
