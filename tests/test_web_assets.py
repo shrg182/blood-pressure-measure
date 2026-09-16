@@ -39,3 +39,12 @@ def test_interface_labels_experimental_pressure_estimate():
     assert "do not use it for diagnosis" in html
     assert "estimateBloodPressure" in javascript
     assert "population-heuristic-v1" in javascript
+
+
+def test_signal_quality_uses_analyzed_camera_frames():
+    javascript = files("blood_measure").joinpath("web", "app.js").read_text()
+
+    assert "requestVideoFrameCallback" in javascript
+    assert "function analyzeChannel" in javascript
+    assert "function setQualityDisplay" in javascript
+    assert "(peak.value - .10) / .50" in javascript

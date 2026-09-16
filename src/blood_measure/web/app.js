@@ -28,6 +28,7 @@ const STORAGE_KEY = "blood-measure-paired-readings-v1";
 
 let stream = null;
 let animationId = null;
+let animationKind = null;
 let samples = [];
 let startedAt = 0;
 let latestReading = null;
@@ -77,7 +78,7 @@ async function startMeasurement() {
     startedAt = performance.now();
     button.textContent = "Stop measurement";
     instruction.textContent = "Keep your fingertip still and use gentle, steady pressure.";
-    captureFrame();
+    scheduleCapture();
   } catch (error) {
     releaseCamera();
     showError(error.name === "NotAllowedError" ? "Camera permission was not granted." : "The rear camera could not be started.");
@@ -91,6 +92,28 @@ async function enableTorch(track) {
   if (capabilities?.torch) {
     try { await track.applyConstraints({ advanced: [{ torch: true }] }); } catch (_) { /* unsupported by some browsers */ }
   }
+}
+
+function scheduleCapture() {
+  if (!stream) return;
+  if (typeof video.requestVideoFrameCallback === "function") {
+    animationKind = "video";
+    animationId = video.requestVideoFrameCallback(captureFrame);
+  } else {
+    animationKind = "animation";
+    animationId = requestAnimationFrame(captureFrame);
+  }
+}
+
+function cancelCapture() {
+  if (animationId === null) return;
+  if (animationKind === "video" && typeof video.cancelVideoFrameCallback === "function") {
+    video.cancelVideoFrameCallback(animationId);
+  } else {
+    cancelAnimationFrame(animationId);
+  }
+  animationId = null;
+  animationKind = null;
 }
 
 function captureFrame(now = performance.now()) {
@@ -111,22 +134,29 @@ function captureFrame(now = performance.now()) {
   countdown.textContent = `${Math.max(0, Math.ceil(RECORDING_SECONDS - elapsed))} sec`;
   document.querySelector("#progress").style.boxShadow = `inset 0 0 0 ${Math.min(9, elapsed / RECORDING_SECONDS * 9)}px #ec6376`;
   if (elapsed >= RECORDING_SECONDS) finishMeasurement();
-  else animationId = requestAnimationFrame(captureFrame);
+  else scheduleCapture();
 }
 
 function updateQuality() {
-  const recent = samples.slice(-30).map(sample => sample.green);
+  const recentFrames = samples.slice(-90);
+  const recent = ["red", "green", "blue"]
+    .map(name => recentFrames.map(sample => sample[name]))
+    .filter(values => average(values) > 8 && average(values) < 250)
+    .sort((left, right) => standardDeviation(right) - standardDeviation(left))[0];
+  if (!recent) {
+    setQualityDisplay(0, "Adjust finger");
+    return;
+  }
   if (recent.length < 10) return;
   const mean = average(recent);
   const variation = standardDeviation(recent);
   const exposure = mean > 12 && mean < 250 ? 1 : 0;
-  const quality = Math.max(0, Math.min(1, exposure * variation / 2.5));
-  qualityBar.style.width = `${quality * 100}%`;
-  qualityLabel.textContent = quality > .65 ? "Good" : quality > .25 ? "Fair" : "Poor";
+  const contact = Math.max(0, Math.min(1, exposure * variation / 1.5));
+  setQualityDisplay(contact, recentFrames.length < 45 ? "Stabilizing" : undefined);
 }
 
 function finishMeasurement() {
-  cancelAnimationFrame(animationId);
+  cancelCapture();
   try {
     const reading = analyzePPG(samples);
     reading.bpEstimate = estimateBloodPressure(reading, loadHistory());
@@ -138,6 +168,7 @@ function finishMeasurement() {
       ? `adjusted with ${reading.bpEstimate.referenceCount} cuff comparison${reading.bpEstimate.referenceCount === 1 ? "" : "s"}`
       : "uncalibrated population heuristic";
     resultQuality.textContent = `${Math.round(reading.quality * 100)}% signal confidence · ${adjustment}`;
+    setQualityDisplay(reading.quality);
     result.hidden = false;
     instruction.textContent = "Reading complete. Repeat while still if the result seems unusual.";
   } catch (error) {
@@ -147,12 +178,13 @@ function finishMeasurement() {
 }
 
 function stopMeasurement() {
-  cancelAnimationFrame(animationId);
+  cancelCapture();
   releaseCamera();
   instruction.textContent = "Measurement stopped. Keep your finger still and try again.";
 }
 
 function releaseCamera() {
+  cancelCapture();
   if (stream) stream.getTracks().forEach(track => track.stop());
   stream = null;
   video.srcObject = null;
@@ -169,29 +201,17 @@ function analyzePPG(frames) {
   const channels = ["red", "green", "blue"].map(name => {
     const values = frames.map(frame => frame[name]);
     const clipped = values.filter(value => value <= 1 || value >= 254).length / values.length;
-    return { name, values, clipped, variation: standardDeviation(values) };
+    return { name, values, clipped };
   });
   const usableChannels = channels.filter(channel => average(channel.values) >= 8 && channel.clipped <= .35);
   if (!usableChannels.length) throw new Error("Adjust your finger to avoid a dark or overexposed image.");
-  const selected = usableChannels.reduce((best, channel) => channel.variation > best.variation ? channel : best);
-  const signalValues = selected.values;
-
-  const windowSize = Math.max(3, Math.round(sampleRate * .75));
-  const baseline = movingAverage(signalValues, windowSize);
-  const centered = signalValues.map((value, index) => value - baseline[index]);
-  const scale = Math.sqrt(average(centered.map(value => value * value)));
-  if (scale < .15) throw new Error("No reliable pulse was detected. Cover the camera and flash completely.");
-  const signal = centered.map(value => value / scale);
   const minLag = Math.max(1, Math.round(sampleRate * 60 / 200));
-  const maxLag = Math.min(Math.floor(signal.length / 2), Math.round(sampleRate * 60 / 40));
-  const correlations = [];
-  for (let lag = minLag; lag <= maxLag; lag++) correlations.push({ lag, value: autocorrelation(signal, lag) });
-  const strongest = Math.max(...correlations.map(item => item.value));
-  const peakIndex = correlations.findIndex((item, index) => item.value >= strongest * .95 &&
-    (index === 0 || item.value >= correlations[index - 1].value) &&
-    (index === correlations.length - 1 || item.value >= correlations[index + 1].value));
-  const peak = correlations[peakIndex];
-  if (!peak || peak.value < .25) throw new Error("Signal quality was too low. Keep your fingertip still and try again.");
+  const maxLag = Math.min(Math.floor(frames.length / 2), Math.round(sampleRate * 60 / 40));
+  const candidates = usableChannels.map(channel => analyzeChannel(channel, sampleRate, minLag, maxLag)).filter(Boolean);
+  if (!candidates.length) throw new Error("No reliable pulse was detected. Cover the camera and flash completely.");
+  const selected = candidates.reduce((best, candidate) => candidate.peak.value > best.peak.value ? candidate : best);
+  const { centered, scale, signal, correlations, peakIndex, peak } = selected;
+  if (peak.value < .18) throw new Error("Signal quality was too low. Keep your fingertip still and try again.");
   let lag = peak.lag;
   if (peakIndex > 0 && peakIndex < correlations.length - 1) {
     const previous = correlations[peakIndex - 1].value, current = peak.value, next = correlations[peakIndex + 1].value;
@@ -199,14 +219,34 @@ function analyzePPG(frames) {
     if (curvature) lag += .5 * (previous - next) / curvature;
   }
   const waveform = downsample(centered.map(value => value / scale), 150).map(value => Number(value.toFixed(4)));
+  // A correlation coefficient is not itself a percentage. Map the useful
+  // real-camera range (roughly .10-.60) onto a user-facing confidence scale.
+  const confidence = Math.max(0, Math.min(1, (peak.value - .10) / .50));
   return {
     bpm: 60 * sampleRate / lag,
-    quality: Math.max(0, Math.min(1, peak.value)),
+    quality: confidence,
     durationSeconds: duration,
     sampleRateHz: sampleRate,
     channel: selected.name,
     waveform
   };
+}
+
+function analyzeChannel(channel, sampleRate, minLag, maxLag) {
+  const baseline = movingAverage(channel.values, Math.max(3, Math.round(sampleRate * .75)));
+  const centered = channel.values.map((value, index) => value - baseline[index]);
+  const scale = Math.sqrt(average(centered.map(value => value * value)));
+  if (scale < .15) return null;
+  const normalized = centered.map(value => value / scale);
+  const signal = movingAverage(normalized, Math.max(1, Math.round(sampleRate * .10)));
+  const correlations = [];
+  for (let lag = minLag; lag <= maxLag; lag++) correlations.push({ lag, value: autocorrelation(signal, lag) });
+  const strongest = Math.max(...correlations.map(item => item.value));
+  const peakIndex = correlations.findIndex((item, index) => item.value >= strongest * .95 &&
+    (index === 0 || item.value >= correlations[index - 1].value) &&
+    (index === correlations.length - 1 || item.value >= correlations[index + 1].value));
+  if (peakIndex < 0) return null;
+  return { name: channel.name, centered, scale, signal, correlations, peakIndex, peak: correlations[peakIndex] };
 }
 
 function movingAverage(values, windowSize) {
@@ -231,6 +271,11 @@ function average(values) { return values.reduce((sum, value) => sum + value, 0) 
 function standardDeviation(values) { const mean = average(values); return Math.sqrt(average(values.map(value => (value - mean) ** 2))); }
 function median(values) { const sorted = [...values].sort((a, b) => a - b); return sorted[Math.floor(sorted.length / 2)]; }
 function showError(message) { instruction.textContent = message; qualityLabel.textContent = "Poor"; qualityBar.style.width = "0"; }
+
+function setQualityDisplay(quality, temporaryLabel) {
+  qualityBar.style.width = `${Math.round(quality * 100)}%`;
+  qualityLabel.textContent = temporaryLabel || (quality >= .70 ? "Good" : quality >= .40 ? "Fair" : "Poor");
+}
 
 function showMeasurementFailure(message) {
   showError(message);
