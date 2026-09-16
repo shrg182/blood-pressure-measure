@@ -39,9 +39,14 @@
     <button id="measureButton" type="button">Start measurement</button>
 
     <section id="result" class="result" hidden>
-      <p id="resultTitle">Estimated pulse</p>
-      <div id="pulseValue"><strong id="heartRate">—</strong> <span>BPM</span></div>
+      <p id="resultTitle">Experimental blood pressure estimate</p>
+      <div id="pressureValue" class="pressure-value">
+        <strong id="estimatedSystolic">—</strong><b>/</b><strong id="estimatedDiastolic">—</strong>
+        <span>mmHg</span>
+      </div>
+      <div id="pulseValue" class="pulse-value">Pulse <strong id="heartRate">—</strong> <span>BPM</span></div>
       <small id="resultQuality"></small>
+      <p class="estimate-warning">Camera-derived experimental estimate. Compare it with your cuff; do not use it for diagnosis, medication, or emergency decisions.</p>
 
       <form id="referenceForm" class="reference-form">
         <h2>Add a cuff reference</h2>
@@ -78,7 +83,7 @@
 
     <details>
       <summary>Important limitation</summary>
-      <p>A phone camera detects a pulse waveform; it does not directly measure blood pressure. Confirm health decisions or unusual readings with a validated upper-arm cuff or a clinician.</p>
+      <p>A phone camera detects a pulse waveform and cannot directly measure blood pressure. The displayed pressure is an experimental heuristic, not a medical measurement. Confirm every health decision or unusual reading with a validated upper-arm cuff or a clinician.</p>
     </details>
   </main>
   <script src="app.js"></script>

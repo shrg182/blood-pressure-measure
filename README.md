@@ -1,8 +1,8 @@
 # Blood Measure
 
 A research prototype for processing fingertip camera signals on a mobile device.
-It extracts a photoplethysmography (PPG) waveform and estimates pulse rate, and
-can separately categorize blood-pressure readings entered from a validated cuff.
+It extracts a photoplethysmography (PPG) waveform, estimates pulse rate, and
+shows an experimental blood-pressure comparison value.
 
 ## Features
 
@@ -14,10 +14,11 @@ can separately categorize blood-pressure readings entered from a validated cuff.
 
 ## Important limitation
 
-A phone camera does not directly measure blood pressure. This prototype does
-not estimate systolic or diastolic pressure from camera data. A BP-estimation
-model requires reference-cuff calibration, representative clinical data, and
-formal validation before its output can be used for health decisions.
+A phone camera does not directly measure blood pressure. The displayed
+systolic/diastolic values are produced by an unvalidated heuristic and are only
+for comparison with a physical cuff. They must not be used for diagnosis,
+medication, emergencies, or other health decisions. Saved cuff comparisons
+apply a bounded personal offset to later estimates.
 
 ## Quick start
 

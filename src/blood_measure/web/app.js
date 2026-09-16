@@ -11,6 +11,9 @@ const qualityBar = document.querySelector("#qualityBar");
 const qualityLabel = document.querySelector("#qualityLabel");
 const result = document.querySelector("#result");
 const resultTitle = document.querySelector("#resultTitle");
+const pressureValue = document.querySelector("#pressureValue");
+const estimatedSystolic = document.querySelector("#estimatedSystolic");
+const estimatedDiastolic = document.querySelector("#estimatedDiastolic");
 const pulseValue = document.querySelector("#pulseValue");
 const heartRate = document.querySelector("#heartRate");
 const resultQuality = document.querySelector("#resultQuality");
@@ -56,7 +59,8 @@ async function startMeasurement() {
   button.disabled = true;
   result.hidden = true;
   result.classList.remove("error");
-  resultTitle.textContent = "Estimated pulse";
+  resultTitle.textContent = "Experimental blood pressure estimate";
+  pressureValue.hidden = false;
   pulseValue.hidden = false;
   referenceForm.hidden = false;
   latestReading = null;
@@ -125,9 +129,15 @@ function finishMeasurement() {
   cancelAnimationFrame(animationId);
   try {
     const reading = analyzePPG(samples);
+    reading.bpEstimate = estimateBloodPressure(reading, loadHistory());
     latestReading = reading;
     heartRate.textContent = reading.bpm.toFixed(0);
-    resultQuality.textContent = `${Math.round(reading.quality * 100)}% signal confidence · personal reference only`;
+    estimatedSystolic.textContent = reading.bpEstimate.systolic;
+    estimatedDiastolic.textContent = reading.bpEstimate.diastolic;
+    const adjustment = reading.bpEstimate.referenceCount
+      ? `adjusted with ${reading.bpEstimate.referenceCount} cuff comparison${reading.bpEstimate.referenceCount === 1 ? "" : "s"}`
+      : "uncalibrated population heuristic";
+    resultQuality.textContent = `${Math.round(reading.quality * 100)}% signal confidence · ${adjustment}`;
     result.hidden = false;
     instruction.textContent = "Reading complete. Repeat while still if the result seems unusual.";
   } catch (error) {
@@ -226,10 +236,49 @@ function showMeasurementFailure(message) {
   showError(message);
   result.classList.add("error");
   resultTitle.textContent = "Measurement unsuccessful";
+  pressureValue.hidden = true;
   pulseValue.hidden = true;
   resultQuality.textContent = message;
   referenceForm.hidden = true;
   result.hidden = false;
+}
+
+function estimateBloodPressure(reading, history = []) {
+  // This deliberately conservative heuristic provides a comparison value, not
+  // a physiological BP measurement. Camera PPG has no absolute pressure scale.
+  const waveform = reading.waveform || [];
+  const roughness = waveform.length > 1
+    ? average(waveform.slice(1).map((value, index) => Math.abs(value - waveform[index])))
+    : .2;
+  const heartRateOffset = Math.max(-35, Math.min(80, reading.bpm - 70));
+  const shapeOffset = Math.max(-1, Math.min(1, (roughness - .22) / .18));
+  const raw = {
+    systolic: 118 + .28 * heartRateOffset + 5 * shapeOffset,
+    diastolic: 76 + .14 * heartRateOffset + 3 * shapeOffset
+  };
+
+  const comparisons = history.filter(item => item?.cuff && item?.ppg).slice(0, 10);
+  let systolicCorrection = 0, diastolicCorrection = 0;
+  if (comparisons.length) {
+    const residuals = comparisons.map(item => {
+      const prior = estimateBloodPressure(item.ppg, []);
+      return {
+        systolic: item.cuff.systolic - prior.systolic,
+        diastolic: item.cuff.diastolic - prior.diastolic
+      };
+    });
+    systolicCorrection = Math.max(-25, Math.min(25, average(residuals.map(item => item.systolic))));
+    diastolicCorrection = Math.max(-15, Math.min(15, average(residuals.map(item => item.diastolic))));
+  }
+
+  const systolic = Math.round(Math.max(80, Math.min(200, raw.systolic + systolicCorrection)));
+  const diastolic = Math.round(Math.max(45, Math.min(130, raw.diastolic + diastolicCorrection)));
+  return {
+    systolic: Math.max(systolic, diastolic + 10),
+    diastolic,
+    referenceCount: comparisons.length,
+    method: comparisons.length ? "personal-offset-v1" : "population-heuristic-v1"
+  };
 }
 
 function downsample(values, targetLength) {
@@ -295,7 +344,8 @@ function renderHistory() {
     date.dateTime = reading.recordedAt;
     date.textContent = new Date(reading.recordedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
     const detail = document.createElement("small");
-    detail.textContent = `${Math.round(reading.ppg.bpm)} BPM · ${Math.round(reading.ppg.quality * 100)}% signal confidence`;
+    const estimate = reading.ppg.bpEstimate;
+    detail.textContent = `${Math.round(reading.ppg.bpm)} BPM · ${Math.round(reading.ppg.quality * 100)}% confidence${estimate ? ` · camera estimate ${estimate.systolic}/${estimate.diastolic}` : ""}`;
     row.append(pressure, date, detail);
     return row;
   }));

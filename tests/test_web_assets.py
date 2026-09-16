@@ -19,7 +19,7 @@ def test_mobile_web_assets_are_packaged():
 def test_interface_describes_camera_bp_limitation():
     html = files("blood_measure").joinpath("web", "index.html").read_text()
 
-    assert "does not directly measure blood pressure" in html
+    assert "cannot directly measure blood pressure" in html
     assert "validated upper-arm cuff" in html
 
 
@@ -28,3 +28,14 @@ def test_interface_has_visible_measurement_failure_state():
 
     assert 'resultTitle.textContent = "Measurement unsuccessful"' in javascript
     assert "result.hidden = false" in javascript
+
+
+def test_interface_labels_experimental_pressure_estimate():
+    web = files("blood_measure").joinpath("web")
+    html = web.joinpath("index.html").read_text()
+    javascript = web.joinpath("app.js").read_text()
+
+    assert "Experimental blood pressure estimate" in html
+    assert "do not use it for diagnosis" in html
+    assert "estimateBloodPressure" in javascript
+    assert "population-heuristic-v1" in javascript
