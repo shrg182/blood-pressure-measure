@@ -53,6 +53,9 @@ When served over HTTPS, supported browsers can install the interface to the
 home screen. The application shell works offline after its first successful
 load; camera recordings and paired readings remain on the device.
 
+The interface supports English and Simplified Chinese through the language
+button in the header. The selected language is remembered in browser storage.
+
 ## GitHub Pages
 
 This repository includes an automated Pages workflow. For the intended GitHub

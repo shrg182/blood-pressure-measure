@@ -26,7 +26,7 @@ def test_interface_describes_camera_bp_limitation():
 def test_interface_has_visible_measurement_failure_state():
     javascript = files("blood_measure").joinpath("web", "app.js").read_text()
 
-    assert 'resultTitle.textContent = "Measurement unsuccessful"' in javascript
+    assert 'resultTitle.textContent = t("unsuccessful")' in javascript
     assert "result.hidden = false" in javascript
 
 
@@ -48,3 +48,15 @@ def test_signal_quality_uses_analyzed_camera_frames():
     assert "function analyzeChannel" in javascript
     assert "function setQualityDisplay" in javascript
     assert "(peak.value - .10) / .50" in javascript
+
+
+def test_interface_supports_english_and_chinese():
+    web = files("blood_measure").joinpath("web")
+    html = web.joinpath("index.html").read_text()
+    javascript = web.joinpath("app.js").read_text()
+
+    assert 'id="languageButton"' in html
+    assert 'data-i18n="startMeasurement"' in html
+    assert 'zh: {' in javascript
+    assert 'appName: "血压测量"' in javascript
+    assert "blood-measure-language" in javascript

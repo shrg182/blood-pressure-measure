@@ -1,6 +1,65 @@
 "use strict";
 
 const RECORDING_SECONDS = 15;
+const LANGUAGE_KEY = "blood-measure-language";
+const TRANSLATIONS = {
+  en: {
+    personalReference: "PERSONAL REFERENCE", appName: "Blood Measure", subtitle: "Place your fingertip gently over the rear camera and flash.",
+    ready: "Ready", initialInstruction: "Sit comfortably and rest for a moment before starting.", signalQuality: "Signal quality",
+    startMeasurement: "Start measurement", stopMeasurement: "Stop measurement", experimentalEstimate: "Experimental blood pressure estimate",
+    pulse: "Pulse", estimateWarning: "Camera-derived experimental estimate. Compare it with your cuff; do not use it for diagnosis, medication, or emergency decisions.",
+    addCuffReference: "Add a cuff reference", cuffInstruction: "Take a validated upper-arm cuff reading immediately after this recording.",
+    systolic: "Systolic", diastolic: "Diastolic", savePairedReading: "Save paired reading", pairedReadings: "Paired readings",
+    exportJson: "Export JSON", clearHistory: "Clear history", privacyNote: "Stored only in this browser. Clearing browser data will remove it.",
+    installApp: "Install app", importantLimitation: "Important limitation",
+    limitationText: "A phone camera detects a pulse waveform and cannot directly measure blood pressure. The displayed pressure is an experimental heuristic, not a medical measurement. Confirm every health decision or unusual reading with a validated upper-arm cuff or a clinician.",
+    cameraSecure: "Camera access requires a supported browser and a secure HTTPS connection.", cameraDenied: "Camera permission was not granted.",
+    cameraFailed: "The rear camera could not be started.", holdStill: "Keep your fingertip still and use gentle, steady pressure.", seconds: "{count} sec",
+    adjustFinger: "Adjust finger", stabilizing: "Stabilizing", good: "Good", fair: "Fair", poor: "Poor",
+    adjusted: "adjusted with {count} cuff comparison{suffix}", uncalibrated: "uncalibrated population heuristic",
+    confidence: "{quality}% signal confidence · {adjustment}", complete: "Reading complete. Repeat while still if the result seems unusual.",
+    stopped: "Measurement stopped. Keep your finger still and try again.", notEnoughFrames: "Not enough camera frames. Try again.",
+    tooShort: "The recording was too short. Try again.", exposure: "Adjust your finger to avoid a dark or overexposed image.",
+    noPulse: "No reliable pulse was detected. Cover the camera and flash completely.", lowQuality: "Signal quality was too low. Keep your fingertip still and try again.",
+    unsuccessful: "Measurement unsuccessful", completeFirst: "Complete a fingertip recording first.", invalidPressure: "Systolic should be higher than diastolic.",
+    storageFailed: "This browser could not store the reading.", saved: "Paired reading saved locally.", savedCount: "{count} saved",
+    historyDetail: "{bpm} BPM · {quality}% confidence{estimate}", cameraEstimate: " · camera estimate {systolic}/{diastolic}",
+    clearConfirm: "Delete all locally stored paired readings? This cannot be undone."
+  },
+  zh: {
+    personalReference: "个人参考", appName: "血压测量", subtitle: "请将指尖轻轻覆盖后置摄像头和闪光灯。", ready: "准备就绪",
+    initialInstruction: "开始前请舒适坐好并稍作休息。", signalQuality: "信号质量", startMeasurement: "开始测量", stopMeasurement: "停止测量",
+    experimentalEstimate: "实验性血压估计", pulse: "脉搏", estimateWarning: "此结果由手机摄像头实验性估算。请与袖带式血压计对照；勿用于诊断、用药或紧急医疗决定。",
+    addCuffReference: "添加袖带血压参考值", cuffInstruction: "请在本次测量后立即使用经过验证的上臂式血压计测量。",
+    systolic: "收缩压", diastolic: "舒张压", savePairedReading: "保存配对读数", pairedReadings: "配对读数", exportJson: "导出 JSON",
+    clearHistory: "清除历史", privacyNote: "数据仅保存在本浏览器中。清除浏览器数据会将其删除。", installApp: "安装应用", importantLimitation: "重要限制",
+    limitationText: "手机摄像头只能检测脉搏波，无法直接测量血压。显示的血压是实验性算法估计，并非医疗测量。任何健康决定或异常读数都应使用经过验证的上臂式血压计或咨询医生确认。",
+    cameraSecure: "摄像头访问需要受支持的浏览器和安全的 HTTPS 连接。", cameraDenied: "未授予摄像头权限。", cameraFailed: "无法启动后置摄像头。",
+    holdStill: "请保持指尖静止并使用轻柔、稳定的压力。", seconds: "{count} 秒", adjustFinger: "调整手指", stabilizing: "信号稳定中",
+    good: "良好", fair: "一般", poor: "较差", adjusted: "已根据 {count} 次袖带对照进行调整", uncalibrated: "未经校准的群体启发式算法",
+    confidence: "信号置信度 {quality}% · {adjustment}", complete: "测量完成。如结果异常，请保持静止后重新测量。", stopped: "测量已停止。请保持手指静止后重试。",
+    notEnoughFrames: "摄像头帧数不足，请重试。", tooShort: "测量时间过短，请重试。", exposure: "请调整手指，避免画面过暗或过度曝光。",
+    noPulse: "未检测到可靠的脉搏波。请完全覆盖摄像头和闪光灯。", lowQuality: "信号质量过低。请保持指尖静止后重试。", unsuccessful: "测量未成功",
+    completeFirst: "请先完成一次指尖测量。", invalidPressure: "收缩压应高于舒张压。", storageFailed: "此浏览器无法保存该读数。",
+    saved: "配对读数已保存在本机。", savedCount: "已保存 {count} 条", historyDetail: "{bpm} BPM · 置信度 {quality}%{estimate}",
+    cameraEstimate: " · 摄像头估计 {systolic}/{diastolic}", clearConfirm: "删除所有保存在本机的配对读数？此操作无法撤销。"
+  }
+};
+let currentLanguage = localStorage.getItem(LANGUAGE_KEY) || (navigator.language?.toLowerCase().startsWith("zh") ? "zh" : "en");
+
+function t(key, values = {}) {
+  let text = TRANSLATIONS[currentLanguage][key] || TRANSLATIONS.en[key] || key;
+  Object.entries(values).forEach(([name, value]) => { text = text.replaceAll(`{${name}}`, value); });
+  return text;
+}
+
+function applyLanguage() {
+  document.documentElement.lang = currentLanguage === "zh" ? "zh-CN" : "en";
+  document.title = t("appName");
+  document.querySelectorAll("[data-i18n]").forEach(element => { element.textContent = t(element.dataset.i18n); });
+  document.querySelector("#languageButton").textContent = currentLanguage === "zh" ? "English" : "中文";
+  renderHistory();
+}
 const video = document.querySelector("#camera");
 const canvas = document.querySelector("#sampleCanvas");
 const context = canvas.getContext("2d", { willReadFrequently: true });
@@ -24,6 +83,7 @@ const historyList = document.querySelector("#historyList");
 const historyCount = document.querySelector("#historyCount");
 const trendChart = document.querySelector("#trendChart");
 const installButton = document.querySelector("#installButton");
+const languageButton = document.querySelector("#languageButton");
 const STORAGE_KEY = "blood-measure-paired-readings-v1";
 
 let stream = null;
@@ -39,6 +99,11 @@ referenceForm.addEventListener("submit", saveReferenceReading);
 document.querySelector("#exportButton").addEventListener("click", exportHistory);
 document.querySelector("#clearButton").addEventListener("click", clearHistory);
 installButton.addEventListener("click", installApp);
+languageButton.addEventListener("click", () => {
+  currentLanguage = currentLanguage === "en" ? "zh" : "en";
+  localStorage.setItem(LANGUAGE_KEY, currentLanguage);
+  applyLanguage();
+});
 window.addEventListener("pagehide", releaseCamera);
 window.addEventListener("beforeinstallprompt", event => {
   event.preventDefault();
@@ -49,18 +114,18 @@ window.addEventListener("appinstalled", () => {
   installPrompt = null;
   installButton.hidden = true;
 });
-renderHistory();
+applyLanguage();
 registerServiceWorker();
 
 async function startMeasurement() {
   if (!navigator.mediaDevices?.getUserMedia) {
-    showError("Camera access requires a supported browser and a secure HTTPS connection.");
+    showError(t("cameraSecure"));
     return;
   }
   button.disabled = true;
   result.hidden = true;
   result.classList.remove("error");
-  resultTitle.textContent = "Experimental blood pressure estimate";
+  resultTitle.textContent = t("experimentalEstimate");
   pressureValue.hidden = false;
   pulseValue.hidden = false;
   referenceForm.hidden = false;
@@ -76,12 +141,12 @@ async function startMeasurement() {
     await enableTorch(stream.getVideoTracks()[0]);
     samples = [];
     startedAt = performance.now();
-    button.textContent = "Stop measurement";
-    instruction.textContent = "Keep your fingertip still and use gentle, steady pressure.";
+    button.textContent = t("stopMeasurement");
+    instruction.textContent = t("holdStill");
     scheduleCapture();
   } catch (error) {
     releaseCamera();
-    showError(error.name === "NotAllowedError" ? "Camera permission was not granted." : "The rear camera could not be started.");
+    showError(error.name === "NotAllowedError" ? t("cameraDenied") : t("cameraFailed"));
   } finally {
     button.disabled = false;
   }
@@ -131,7 +196,7 @@ function captureFrame(now = performance.now()) {
   }
 
   const elapsed = (now - startedAt) / 1000;
-  countdown.textContent = `${Math.max(0, Math.ceil(RECORDING_SECONDS - elapsed))} sec`;
+  countdown.textContent = t("seconds", { count: Math.max(0, Math.ceil(RECORDING_SECONDS - elapsed)) });
   document.querySelector("#progress").style.boxShadow = `inset 0 0 0 ${Math.min(9, elapsed / RECORDING_SECONDS * 9)}px #ec6376`;
   if (elapsed >= RECORDING_SECONDS) finishMeasurement();
   else scheduleCapture();
@@ -144,7 +209,7 @@ function updateQuality() {
     .filter(values => average(values) > 8 && average(values) < 250)
     .sort((left, right) => standardDeviation(right) - standardDeviation(left))[0];
   if (!recent) {
-    setQualityDisplay(0, "Adjust finger");
+    setQualityDisplay(0, t("adjustFinger"));
     return;
   }
   if (recent.length < 10) return;
@@ -152,7 +217,7 @@ function updateQuality() {
   const variation = standardDeviation(recent);
   const exposure = mean > 12 && mean < 250 ? 1 : 0;
   const contact = Math.max(0, Math.min(1, exposure * variation / 1.5));
-  setQualityDisplay(contact, recentFrames.length < 45 ? "Stabilizing" : undefined);
+  setQualityDisplay(contact, recentFrames.length < 45 ? t("stabilizing") : undefined);
 }
 
 function finishMeasurement() {
@@ -165,12 +230,12 @@ function finishMeasurement() {
     estimatedSystolic.textContent = reading.bpEstimate.systolic;
     estimatedDiastolic.textContent = reading.bpEstimate.diastolic;
     const adjustment = reading.bpEstimate.referenceCount
-      ? `adjusted with ${reading.bpEstimate.referenceCount} cuff comparison${reading.bpEstimate.referenceCount === 1 ? "" : "s"}`
-      : "uncalibrated population heuristic";
-    resultQuality.textContent = `${Math.round(reading.quality * 100)}% signal confidence · ${adjustment}`;
+      ? t("adjusted", { count: reading.bpEstimate.referenceCount, suffix: reading.bpEstimate.referenceCount === 1 ? "" : "s" })
+      : t("uncalibrated");
+    resultQuality.textContent = t("confidence", { quality: Math.round(reading.quality * 100), adjustment });
     setQualityDisplay(reading.quality);
     result.hidden = false;
-    instruction.textContent = "Reading complete. Repeat while still if the result seems unusual.";
+    instruction.textContent = t("complete");
   } catch (error) {
     showMeasurementFailure(error.message);
   }
@@ -180,7 +245,7 @@ function finishMeasurement() {
 function stopMeasurement() {
   cancelCapture();
   releaseCamera();
-  instruction.textContent = "Measurement stopped. Keep your finger still and try again.";
+  instruction.textContent = t("stopped");
 }
 
 function releaseCamera() {
@@ -188,14 +253,14 @@ function releaseCamera() {
   if (stream) stream.getTracks().forEach(track => track.stop());
   stream = null;
   video.srcObject = null;
-  button.textContent = "Start measurement";
-  countdown.textContent = "Ready";
+  button.textContent = t("startMeasurement");
+  countdown.textContent = t("ready");
 }
 
 function analyzePPG(frames) {
-  if (frames.length < 40) throw new Error("Not enough camera frames. Try again.");
+  if (frames.length < 40) throw new Error(t("notEnoughFrames"));
   const duration = frames.at(-1).timestamp - frames[0].timestamp;
-  if (duration < 8) throw new Error("The recording was too short. Try again.");
+  if (duration < 8) throw new Error(t("tooShort"));
   const intervals = frames.slice(1).map((frame, index) => frame.timestamp - frames[index].timestamp);
   const sampleRate = 1 / median(intervals);
   const channels = ["red", "green", "blue"].map(name => {
@@ -204,14 +269,14 @@ function analyzePPG(frames) {
     return { name, values, clipped };
   });
   const usableChannels = channels.filter(channel => average(channel.values) >= 8 && channel.clipped <= .35);
-  if (!usableChannels.length) throw new Error("Adjust your finger to avoid a dark or overexposed image.");
+  if (!usableChannels.length) throw new Error(t("exposure"));
   const minLag = Math.max(1, Math.round(sampleRate * 60 / 200));
   const maxLag = Math.min(Math.floor(frames.length / 2), Math.round(sampleRate * 60 / 40));
   const candidates = usableChannels.map(channel => analyzeChannel(channel, sampleRate, minLag, maxLag)).filter(Boolean);
-  if (!candidates.length) throw new Error("No reliable pulse was detected. Cover the camera and flash completely.");
+  if (!candidates.length) throw new Error(t("noPulse"));
   const selected = candidates.reduce((best, candidate) => candidate.peak.value > best.peak.value ? candidate : best);
   const { centered, scale, signal, correlations, peakIndex, peak } = selected;
-  if (peak.value < .18) throw new Error("Signal quality was too low. Keep your fingertip still and try again.");
+  if (peak.value < .18) throw new Error(t("lowQuality"));
   let lag = peak.lag;
   if (peakIndex > 0 && peakIndex < correlations.length - 1) {
     const previous = correlations[peakIndex - 1].value, current = peak.value, next = correlations[peakIndex + 1].value;
@@ -270,17 +335,17 @@ function autocorrelation(values, lag) {
 function average(values) { return values.reduce((sum, value) => sum + value, 0) / values.length; }
 function standardDeviation(values) { const mean = average(values); return Math.sqrt(average(values.map(value => (value - mean) ** 2))); }
 function median(values) { const sorted = [...values].sort((a, b) => a - b); return sorted[Math.floor(sorted.length / 2)]; }
-function showError(message) { instruction.textContent = message; qualityLabel.textContent = "Poor"; qualityBar.style.width = "0"; }
+function showError(message) { instruction.textContent = message; qualityLabel.textContent = t("poor"); qualityBar.style.width = "0"; }
 
 function setQualityDisplay(quality, temporaryLabel) {
   qualityBar.style.width = `${Math.round(quality * 100)}%`;
-  qualityLabel.textContent = temporaryLabel || (quality >= .70 ? "Good" : quality >= .40 ? "Fair" : "Poor");
+  qualityLabel.textContent = temporaryLabel || (quality >= .70 ? t("good") : quality >= .40 ? t("fair") : t("poor"));
 }
 
 function showMeasurementFailure(message) {
   showError(message);
   result.classList.add("error");
-  resultTitle.textContent = "Measurement unsuccessful";
+  resultTitle.textContent = t("unsuccessful");
   pressureValue.hidden = true;
   pulseValue.hidden = true;
   resultQuality.textContent = message;
@@ -349,13 +414,13 @@ function loadHistory() {
 function saveReferenceReading(event) {
   event.preventDefault();
   if (!latestReading) {
-    saveMessage.textContent = "Complete a fingertip recording first.";
+    saveMessage.textContent = t("completeFirst");
     return;
   }
   const systolic = Number(document.querySelector("#systolic").value);
   const diastolic = Number(document.querySelector("#diastolic").value);
   if (systolic <= diastolic) {
-    saveMessage.textContent = "Systolic should be higher than diastolic.";
+    saveMessage.textContent = t("invalidPressure");
     return;
   }
   const history = loadHistory();
@@ -367,19 +432,19 @@ function saveReferenceReading(event) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, 100)));
   } catch (_) {
-    saveMessage.textContent = "This browser could not store the reading.";
+    saveMessage.textContent = t("storageFailed");
     return;
   }
   referenceForm.reset();
   latestReading = null;
-  saveMessage.textContent = "Paired reading saved locally.";
+  saveMessage.textContent = t("saved");
   renderHistory();
 }
 
 function renderHistory() {
   const history = loadHistory();
   historySection.hidden = history.length === 0;
-  historyCount.textContent = `${history.length} saved`;
+  historyCount.textContent = t("savedCount", { count: history.length });
   historyList.replaceChildren(...history.slice(0, 8).map(reading => {
     const row = document.createElement("div");
     row.className = "history-item";
@@ -387,10 +452,11 @@ function renderHistory() {
     pressure.textContent = `${reading.cuff.systolic}/${reading.cuff.diastolic} mmHg`;
     const date = document.createElement("time");
     date.dateTime = reading.recordedAt;
-    date.textContent = new Date(reading.recordedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+    date.textContent = new Date(reading.recordedAt).toLocaleString(currentLanguage === "zh" ? "zh-CN" : undefined, { dateStyle: "medium", timeStyle: "short" });
     const detail = document.createElement("small");
     const estimate = reading.ppg.bpEstimate;
-    detail.textContent = `${Math.round(reading.ppg.bpm)} BPM · ${Math.round(reading.ppg.quality * 100)}% confidence${estimate ? ` · camera estimate ${estimate.systolic}/${estimate.diastolic}` : ""}`;
+    const estimateText = estimate ? t("cameraEstimate", { systolic: estimate.systolic, diastolic: estimate.diastolic }) : "";
+    detail.textContent = t("historyDetail", { bpm: Math.round(reading.ppg.bpm), quality: Math.round(reading.ppg.quality * 100), estimate: estimateText });
     row.append(pressure, date, detail);
     return row;
   }));
@@ -409,7 +475,7 @@ function exportHistory() {
 }
 
 function clearHistory() {
-  if (!confirm("Delete all locally stored paired readings? This cannot be undone.")) return;
+  if (!confirm(t("clearConfirm"))) return;
   localStorage.removeItem(STORAGE_KEY);
   renderHistory();
 }
