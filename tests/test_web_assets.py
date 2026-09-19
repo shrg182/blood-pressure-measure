@@ -60,3 +60,25 @@ def test_interface_supports_english_and_chinese():
     assert 'zh: {' in javascript
     assert 'appName: "血压测量"' in javascript
     assert "blood-measure-language" in javascript
+
+
+def test_personal_calibration_uses_paired_cuff_pulse_safely():
+    web = files("blood_measure").joinpath("web")
+    html = web.joinpath("index.html").read_text()
+    javascript = web.joinpath("app.js").read_text()
+
+    assert 'id="cuffPulse"' in html
+    assert 'id="pulseAdjustment"' in html
+    assert "function adjustPulse" in javascript
+    assert "comparisons.length < 3" in javascript
+    assert "Math.max(-20, Math.min(20, median(residuals)))" in javascript
+    assert 'method: "personal-median-offset-v1"' in javascript
+
+
+def test_pressure_calibration_requires_three_references_and_uses_median():
+    javascript = files("blood_measure").joinpath("web", "app.js").read_text()
+
+    assert "comparisons.length >= 3" in javascript
+    assert "median(residuals.map(item => item.systolic))" in javascript
+    assert "median(residuals.map(item => item.diastolic))" in javascript
+    assert 'method: comparisons.length >= 3 ? "personal-median-offset-v2"' in javascript

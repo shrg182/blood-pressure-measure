@@ -17,8 +17,10 @@ shows an experimental blood-pressure comparison value.
 A phone camera does not directly measure blood pressure. The displayed
 systolic/diastolic values are produced by an unvalidated heuristic and are only
 for comparison with a physical cuff. They must not be used for diagnosis,
-medication, emergencies, or other health decisions. Saved cuff comparisons
-apply a bounded personal offset to later estimates.
+medication, emergencies, or other health decisions. After three saved cuff
+comparisons, the app applies bounded, median-based personal offsets to later
+estimates. This numerical adjustment does not make the camera result a medical
+measurement.
 
 ## Quick start
 
@@ -45,9 +47,13 @@ For HTTPS phone testing or static deployment, follow
 `--certfile`, and `--keyfile` options.
 
 After a successful recording, you can pair it with a validated upper-arm cuff
-reading. Up to 100 paired readings and a compact normalized waveform are stored
-only in that browser. The history can be exported as JSON for later personal
-analysis or model research.
+reading, including the cuff's pulse value. Once three usable pairs are saved,
+the interface shows a bounded personally adjusted pulse while preserving the
+raw camera value, and uses robust bounded offsets for its experimental pressure
+comparison. Up to 100 paired readings and a compact normalized waveform are
+stored only in that browser. The history can be exported as JSON for later
+personal analysis or model research. Clear the history to reset all personal
+adjustments.
 
 When served over HTTPS, supported browsers can install the interface to the
 home screen. The application shell works offline after its first successful

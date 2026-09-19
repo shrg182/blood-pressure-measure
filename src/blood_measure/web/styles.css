@@ -66,11 +66,12 @@ button:disabled { opacity: .55; }
 .pressure-value span { margin-left: 3px; }
 .pulse-value { margin: 8px 0; color: #746267; }
 .pulse-value strong { margin-left: 5px; font-size: 1.55rem; }
+#pulseAdjustment { line-height: 1.4; }
 .estimate-warning { margin: 14px 0 0 !important; padding: 10px; border-radius: 10px; background: #f5e6df; color: #704c52 !important; font-size: .74rem; line-height: 1.4; }
 .result.error { border-color: #dbaeb5; background: #fff2f2; }
 .result.error > p { color: #982e42; font-weight: 750; }
 .result.error #resultQuality { color: #713e47; font-size: .86rem; line-height: 1.45; }
-.result.error #pressureValue, .result.error .estimate-warning { display: none; }
+.result.error #pressureValue, .result.error #pulseAdjustment, .result.error .estimate-warning { display: none; }
 
 .reference-form { margin-top: 20px; padding-top: 18px; border-top: 1px solid #ead7d5; }
 .reference-form h2, .history h2 { margin: 0; font-size: 1rem; }
@@ -79,6 +80,9 @@ button:disabled { opacity: .55; }
 .bp-fields label { color: #746267; font-size: .72rem; font-weight: 700; }
 .bp-fields input { width: 100%; margin-top: 4px; padding: 11px 8px; border: 1px solid #d9c5c3; border-radius: 10px; background: white; color: #291d20; font: inherit; font-size: 1.05rem; }
 .bp-fields span, .bp-fields em { padding-bottom: 11px; color: #806c70; font-style: normal; }
+.pulse-field { display: flex; gap: 8px; align-items: center; margin-top: 10px; color: #746267; font-size: .78rem; font-weight: 700; }
+.pulse-field input { width: 88px; margin-left: auto; padding: 10px 8px; border: 1px solid #d9c5c3; border-radius: 10px; background: white; color: #291d20; font: inherit; font-size: 1rem; }
+.pulse-field em { color: #806c70; font-style: normal; }
 button.secondary { margin: 14px 0 0; padding: 12px; background: #6f5057; box-shadow: none; }
 .save-message { min-height: 18px; margin: 7px 0 0 !important; color: #386d52 !important; }
 

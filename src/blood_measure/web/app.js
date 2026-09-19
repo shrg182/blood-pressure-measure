@@ -7,41 +7,46 @@ const TRANSLATIONS = {
     personalReference: "PERSONAL REFERENCE", appName: "Blood Measure", subtitle: "Place your fingertip gently over the rear camera and flash.",
     ready: "Ready", initialInstruction: "Sit comfortably and rest for a moment before starting.", signalQuality: "Signal quality",
     startMeasurement: "Start measurement", stopMeasurement: "Stop measurement", experimentalEstimate: "Experimental blood pressure estimate",
-    pulse: "Pulse", estimateWarning: "Camera-derived experimental estimate. Compare it with your cuff; do not use it for diagnosis, medication, or emergency decisions.",
-    addCuffReference: "Add a cuff reference", cuffInstruction: "Take a validated upper-arm cuff reading immediately after this recording.",
+    pulse: "Pulse", adjustedPulse: "Pulse estimate", cuffPulse: "Cuff pulse", estimateWarning: "Camera-derived experimental estimate. Compare it with your cuff; do not use it for diagnosis, medication, or emergency decisions.",
+    addCuffReference: "Add a cuff reference", cuffInstruction: "Take a validated upper-arm cuff blood-pressure and pulse reading immediately after this recording.",
     systolic: "Systolic", diastolic: "Diastolic", savePairedReading: "Save paired reading", pairedReadings: "Paired readings",
     exportJson: "Export JSON", clearHistory: "Clear history", privacyNote: "Stored only in this browser. Clearing browser data will remove it.",
     installApp: "Install app", importantLimitation: "Important limitation",
-    limitationText: "A phone camera detects a pulse waveform and cannot directly measure blood pressure. The displayed pressure is an experimental heuristic, not a medical measurement. Confirm every health decision or unusual reading with a validated upper-arm cuff or a clinician.",
+    limitationText: "A phone camera detects a pulse waveform and cannot directly measure blood pressure. Personal adjustment only changes the displayed estimate and does not make it a medical measurement. Confirm every health decision or unusual reading with a validated upper-arm cuff or a clinician.",
     cameraSecure: "Camera access requires a supported browser and a secure HTTPS connection.", cameraDenied: "Camera permission was not granted.",
     cameraFailed: "The rear camera could not be started.", holdStill: "Keep your fingertip still and use gentle, steady pressure.", seconds: "{count} sec",
     adjustFinger: "Adjust finger", stabilizing: "Stabilizing", good: "Good", fair: "Fair", poor: "Poor",
     adjusted: "adjusted with {count} cuff comparison{suffix}", uncalibrated: "uncalibrated population heuristic",
+    pulseAdjusted: "Camera detected {raw} BPM; adjusted using {count} paired cuff readings.",
+    pulseUnadjusted: "Camera-detected pulse. Personal adjustment starts after {required} paired cuff readings ({count} saved).",
     confidence: "{quality}% signal confidence · {adjustment}", complete: "Reading complete. Repeat while still if the result seems unusual.",
     stopped: "Measurement stopped. Keep your finger still and try again.", notEnoughFrames: "Not enough camera frames. Try again.",
     tooShort: "The recording was too short. Try again.", exposure: "Adjust your finger to avoid a dark or overexposed image.",
     noPulse: "No reliable pulse was detected. Cover the camera and flash completely.", lowQuality: "Signal quality was too low. Keep your fingertip still and try again.",
     unsuccessful: "Measurement unsuccessful", completeFirst: "Complete a fingertip recording first.", invalidPressure: "Systolic should be higher than diastolic.",
+    invalidPulse: "Enter a cuff pulse between 35 and 220 BPM.",
     storageFailed: "This browser could not store the reading.", saved: "Paired reading saved locally.", savedCount: "{count} saved",
-    historyDetail: "{bpm} BPM · {quality}% confidence{estimate}", cameraEstimate: " · camera estimate {systolic}/{diastolic}",
+    historyDetail: "camera {bpm} BPM · cuff {cuffPulse} BPM · {quality}% confidence{estimate}", cameraEstimate: " · camera estimate {systolic}/{diastolic}",
     clearConfirm: "Delete all locally stored paired readings? This cannot be undone."
   },
   zh: {
     personalReference: "个人参考", appName: "血压测量", subtitle: "请将指尖轻轻覆盖后置摄像头和闪光灯。", ready: "准备就绪",
     initialInstruction: "开始前请舒适坐好并稍作休息。", signalQuality: "信号质量", startMeasurement: "开始测量", stopMeasurement: "停止测量",
-    experimentalEstimate: "实验性血压估计", pulse: "脉搏", estimateWarning: "此结果由手机摄像头实验性估算。请与袖带式血压计对照；勿用于诊断、用药或紧急医疗决定。",
-    addCuffReference: "添加袖带血压参考值", cuffInstruction: "请在本次测量后立即使用经过验证的上臂式血压计测量。",
+    experimentalEstimate: "实验性血压估计", pulse: "脉搏", adjustedPulse: "脉搏估计", cuffPulse: "袖带脉搏", estimateWarning: "此结果由手机摄像头实验性估算。请与袖带式血压计对照；勿用于诊断、用药或紧急医疗决定。",
+    addCuffReference: "添加袖带血压参考值", cuffInstruction: "请在本次测量后立即使用经过验证的上臂式血压计测量血压和脉搏。",
     systolic: "收缩压", diastolic: "舒张压", savePairedReading: "保存配对读数", pairedReadings: "配对读数", exportJson: "导出 JSON",
     clearHistory: "清除历史", privacyNote: "数据仅保存在本浏览器中。清除浏览器数据会将其删除。", installApp: "安装应用", importantLimitation: "重要限制",
-    limitationText: "手机摄像头只能检测脉搏波，无法直接测量血压。显示的血压是实验性算法估计，并非医疗测量。任何健康决定或异常读数都应使用经过验证的上臂式血压计或咨询医生确认。",
+    limitationText: "手机摄像头只能检测脉搏波，无法直接测量血压。个人调整只会改变显示的估计值，不会使其成为医疗测量。任何健康决定或异常读数都应使用经过验证的上臂式血压计或咨询医生确认。",
     cameraSecure: "摄像头访问需要受支持的浏览器和安全的 HTTPS 连接。", cameraDenied: "未授予摄像头权限。", cameraFailed: "无法启动后置摄像头。",
     holdStill: "请保持指尖静止并使用轻柔、稳定的压力。", seconds: "{count} 秒", adjustFinger: "调整手指", stabilizing: "信号稳定中",
     good: "良好", fair: "一般", poor: "较差", adjusted: "已根据 {count} 次袖带对照进行调整", uncalibrated: "未经校准的群体启发式算法",
+    pulseAdjusted: "摄像头检测为 {raw} BPM；已使用 {count} 条袖带配对读数调整。",
+    pulseUnadjusted: "摄像头检测的脉搏。保存 {required} 条袖带配对读数后开始个人调整（已保存 {count} 条）。",
     confidence: "信号置信度 {quality}% · {adjustment}", complete: "测量完成。如结果异常，请保持静止后重新测量。", stopped: "测量已停止。请保持手指静止后重试。",
     notEnoughFrames: "摄像头帧数不足，请重试。", tooShort: "测量时间过短，请重试。", exposure: "请调整手指，避免画面过暗或过度曝光。",
     noPulse: "未检测到可靠的脉搏波。请完全覆盖摄像头和闪光灯。", lowQuality: "信号质量过低。请保持指尖静止后重试。", unsuccessful: "测量未成功",
-    completeFirst: "请先完成一次指尖测量。", invalidPressure: "收缩压应高于舒张压。", storageFailed: "此浏览器无法保存该读数。",
-    saved: "配对读数已保存在本机。", savedCount: "已保存 {count} 条", historyDetail: "{bpm} BPM · 置信度 {quality}%{estimate}",
+    completeFirst: "请先完成一次指尖测量。", invalidPressure: "收缩压应高于舒张压。", invalidPulse: "请输入 35 至 220 BPM 的袖带脉搏。", storageFailed: "此浏览器无法保存该读数。",
+    saved: "配对读数已保存在本机。", savedCount: "已保存 {count} 条", historyDetail: "摄像头 {bpm} BPM · 袖带 {cuffPulse} BPM · 置信度 {quality}%{estimate}",
     cameraEstimate: " · 摄像头估计 {systolic}/{diastolic}", clearConfirm: "删除所有保存在本机的配对读数？此操作无法撤销。"
   }
 };
@@ -75,6 +80,7 @@ const estimatedSystolic = document.querySelector("#estimatedSystolic");
 const estimatedDiastolic = document.querySelector("#estimatedDiastolic");
 const pulseValue = document.querySelector("#pulseValue");
 const heartRate = document.querySelector("#heartRate");
+const pulseAdjustment = document.querySelector("#pulseAdjustment");
 const resultQuality = document.querySelector("#resultQuality");
 const referenceForm = document.querySelector("#referenceForm");
 const saveMessage = document.querySelector("#saveMessage");
@@ -224,9 +230,14 @@ function finishMeasurement() {
   cancelCapture();
   try {
     const reading = analyzePPG(samples);
-    reading.bpEstimate = estimateBloodPressure(reading, loadHistory());
+    const history = loadHistory();
+    reading.bpEstimate = estimateBloodPressure(reading, history);
+    reading.pulseEstimate = adjustPulse(reading, history);
     latestReading = reading;
-    heartRate.textContent = reading.bpm.toFixed(0);
+    heartRate.textContent = reading.pulseEstimate.bpm;
+    pulseAdjustment.textContent = reading.pulseEstimate.referenceCount >= 3
+      ? t("pulseAdjusted", { raw: Math.round(reading.bpm), count: reading.pulseEstimate.referenceCount })
+      : t("pulseUnadjusted", { required: 3, count: reading.pulseEstimate.referenceCount });
     estimatedSystolic.textContent = reading.bpEstimate.systolic;
     estimatedDiastolic.textContent = reading.bpEstimate.diastolic;
     const adjustment = reading.bpEstimate.referenceCount
@@ -367,9 +378,12 @@ function estimateBloodPressure(reading, history = []) {
     diastolic: 76 + .14 * heartRateOffset + 3 * shapeOffset
   };
 
-  const comparisons = history.filter(item => item?.cuff && item?.ppg).slice(0, 10);
+  const comparisons = history.filter(item =>
+    Number.isFinite(item?.cuff?.systolic) && Number.isFinite(item?.cuff?.diastolic) &&
+    Number.isFinite(item?.ppg?.bpm) && item.ppg.quality >= .40
+  ).slice(0, 10);
   let systolicCorrection = 0, diastolicCorrection = 0;
-  if (comparisons.length) {
+  if (comparisons.length >= 3) {
     const residuals = comparisons.map(item => {
       const prior = estimateBloodPressure(item.ppg, []);
       return {
@@ -377,8 +391,8 @@ function estimateBloodPressure(reading, history = []) {
         diastolic: item.cuff.diastolic - prior.diastolic
       };
     });
-    systolicCorrection = Math.max(-25, Math.min(25, average(residuals.map(item => item.systolic))));
-    diastolicCorrection = Math.max(-15, Math.min(15, average(residuals.map(item => item.diastolic))));
+    systolicCorrection = Math.max(-25, Math.min(25, median(residuals.map(item => item.systolic))));
+    diastolicCorrection = Math.max(-15, Math.min(15, median(residuals.map(item => item.diastolic))));
   }
 
   const systolic = Math.round(Math.max(80, Math.min(200, raw.systolic + systolicCorrection)));
@@ -386,8 +400,26 @@ function estimateBloodPressure(reading, history = []) {
   return {
     systolic: Math.max(systolic, diastolic + 10),
     diastolic,
+    referenceCount: comparisons.length >= 3 ? comparisons.length : 0,
+    method: comparisons.length >= 3 ? "personal-median-offset-v2" : "population-heuristic-v1"
+  };
+}
+
+function adjustPulse(reading, history = []) {
+  const comparisons = history
+    .filter(item => Number.isFinite(item?.cuff?.pulse) && Number.isFinite(item?.ppg?.bpm) && item.ppg.quality >= .40)
+    .slice(0, 10);
+  if (comparisons.length < 3) {
+    return { bpm: Math.round(reading.bpm), rawBpm: reading.bpm, correction: 0, referenceCount: comparisons.length, method: "camera-ppg-v1" };
+  }
+  const residuals = comparisons.map(item => item.cuff.pulse - item.ppg.bpm);
+  const correction = Math.max(-20, Math.min(20, median(residuals)));
+  return {
+    bpm: Math.round(Math.max(35, Math.min(220, reading.bpm + correction))),
+    rawBpm: reading.bpm,
+    correction: Number(correction.toFixed(1)),
     referenceCount: comparisons.length,
-    method: comparisons.length ? "personal-offset-v1" : "population-heuristic-v1"
+    method: "personal-median-offset-v1"
   };
 }
 
@@ -419,14 +451,19 @@ function saveReferenceReading(event) {
   }
   const systolic = Number(document.querySelector("#systolic").value);
   const diastolic = Number(document.querySelector("#diastolic").value);
+  const cuffPulse = Number(document.querySelector("#cuffPulse").value);
   if (systolic <= diastolic) {
     saveMessage.textContent = t("invalidPressure");
+    return;
+  }
+  if (!Number.isFinite(cuffPulse) || cuffPulse < 35 || cuffPulse > 220) {
+    saveMessage.textContent = t("invalidPulse");
     return;
   }
   const history = loadHistory();
   history.unshift({
     recordedAt: new Date().toISOString(),
-    cuff: { systolic, diastolic },
+    cuff: { systolic, diastolic, pulse: cuffPulse },
     ppg: latestReading
   });
   try {
@@ -456,7 +493,12 @@ function renderHistory() {
     const detail = document.createElement("small");
     const estimate = reading.ppg.bpEstimate;
     const estimateText = estimate ? t("cameraEstimate", { systolic: estimate.systolic, diastolic: estimate.diastolic }) : "";
-    detail.textContent = t("historyDetail", { bpm: Math.round(reading.ppg.bpm), quality: Math.round(reading.ppg.quality * 100), estimate: estimateText });
+    detail.textContent = t("historyDetail", {
+      bpm: Math.round(reading.ppg.bpm),
+      cuffPulse: Number.isFinite(reading.cuff.pulse) ? Math.round(reading.cuff.pulse) : "—",
+      quality: Math.round(reading.ppg.quality * 100),
+      estimate: estimateText
+    });
     row.append(pressure, date, detail);
     return row;
   }));
