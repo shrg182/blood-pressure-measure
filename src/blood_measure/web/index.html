@@ -10,14 +10,24 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.dataset.theme = localStorage.getItem("blood-measure-theme") || "classic";</script>
 </head>
 <body>
   <main>
     <header>
-      <button id="languageButton" class="language-button" type="button">中文</button>
+      <nav class="top-actions" aria-label="Page and appearance controls">
+        <a class="usage-link" href="usage.html" data-i18n="usage">Usage</a>
+        <label class="theme-control">
+          <span class="visually-hidden" data-i18n="appearance">Appearance</span>
+          <select id="themeSelect" aria-label="Appearance">
+            <option value="classic" data-i18n="classic">Classic</option>
+            <option value="ivory" data-i18n="ivory">Ivory</option>
+          </select>
+        </label>
+        <button id="languageButton" class="language-button" type="button">中文</button>
+      </nav>
       <p class="eyebrow" data-i18n="personalReference">PERSONAL REFERENCE</p>
       <h1 data-i18n="appName">Blood Measure</h1>
-      <p class="subtitle" data-i18n="subtitle">Place your fingertip gently over the rear camera and flash.</p>
     </header>
 
     <section class="meter" aria-label="Measurement status">
@@ -84,10 +94,6 @@
 
     <button id="installButton" class="install-button" type="button" hidden data-i18n="installApp">Install app</button>
 
-    <details>
-      <summary data-i18n="importantLimitation">Important limitation</summary>
-      <p data-i18n="limitationText">A phone camera detects a pulse waveform and cannot directly measure blood pressure. Personal adjustment only changes the displayed estimate and does not make it a medical measurement. Confirm every health decision or unusual reading with a validated upper-arm cuff or a clinician.</p>
-    </details>
   </main>
   <script src="app.js"></script>
 </body>

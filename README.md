@@ -61,6 +61,9 @@ load; camera recordings and paired readings remain on the device.
 
 The interface supports English and Simplified Chinese through the language
 button in the header. The selected language is remembered in browser storage.
+It also offers persistent Classic and Ivory appearances. Detailed preparation,
+recording, cuff-reference, privacy, and safety guidance is available from the
+separate Usage page so the meter remains uncluttered.
 
 ## GitHub Pages
 

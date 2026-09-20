@@ -6,8 +6,10 @@ def test_mobile_web_assets_are_packaged():
 
     for asset in (
         "index.html",
+        "usage.html",
         "styles.css",
         "app.js",
+        "usage.js",
         "manifest.webmanifest",
         "service-worker.js",
         "icon.svg",
@@ -17,10 +19,33 @@ def test_mobile_web_assets_are_packaged():
 
 
 def test_interface_describes_camera_bp_limitation():
-    html = files("blood_measure").joinpath("web", "index.html").read_text()
+    html = files("blood_measure").joinpath("web", "usage.html").read_text()
 
     assert "cannot directly measure blood pressure" in html
     assert "validated upper-arm cuff" in html
+
+
+def test_interface_offers_persistent_ivory_theme():
+    web = files("blood_measure").joinpath("web")
+    html = web.joinpath("index.html").read_text()
+    css = web.joinpath("styles.css").read_text()
+    javascript = web.joinpath("app.js").read_text()
+
+    assert '<option value="ivory"' in html
+    assert ':root[data-theme="ivory"]' in css
+    assert 'const THEME_KEY = "blood-measure-theme"' in javascript
+    assert "localStorage.setItem(THEME_KEY, themeSelect.value)" in javascript
+
+
+def test_usage_page_keeps_meter_page_concise():
+    web = files("blood_measure").joinpath("web")
+    meter = web.joinpath("index.html").read_text()
+    usage = web.joinpath("usage.html").read_text()
+
+    assert 'href="usage.html"' in meter
+    assert "During the recording" in usage
+    assert "Privacy and saved readings" in usage
+    assert "<details>" not in meter
 
 
 def test_interface_has_visible_measurement_failure_state():
