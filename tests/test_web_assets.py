@@ -99,6 +99,7 @@ def test_signal_quality_uses_analyzed_camera_frames():
     assert "function setQualityDisplay" in javascript
     assert "const analysisStart = frames[0].timestamp + 1.5" in javascript
     assert "function selectConsensusCandidate" in javascript
+    assert "function candidateScore" in javascript
     assert "competition >= .65" in javascript
 
 

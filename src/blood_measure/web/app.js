@@ -295,7 +295,7 @@ function analyzePPG(frames) {
   const sampleRate = 1 / median(intervals);
   const intervalMean = average(intervals);
   const timingJitter = standardDeviation(intervals) / intervalMean;
-  if (!Number.isFinite(sampleRate) || sampleRate < 5 || sampleRate > 120 || timingJitter > .25) throw new Error(t("lowQuality"));
+  if (!Number.isFinite(sampleRate) || sampleRate < 5 || sampleRate > 120 || timingJitter > .75) throw new Error(t("lowQuality"));
   const channels = ["red", "green", "blue"].map(name => {
     const values = analysisFrames.map(frame => frame[name]);
     const clipped = values.filter(value => value <= 1 || value >= 254).length / values.length;
@@ -306,11 +306,11 @@ function analyzePPG(frames) {
   const timestamps = analysisFrames.map(frame => frame.timestamp);
   const candidates = usableChannels.map(channel => analyzeChannel(channel, timestamps, sampleRate)).filter(Boolean);
   if (!candidates.length) throw new Error(t("noPulse"));
-  const selected = selectConsensusCandidate(candidates, candidates.length);
-  if (!selected || selected.correlation < .18 || selected.ambiguous) throw new Error(t("lowQuality"));
+  const selected = selectConsensusCandidate(candidates);
+  if (!selected || selected.ambiguous) throw new Error(t("lowQuality"));
   const { centered, scale } = selected;
   const waveform = downsample(centered.map(value => value / scale), 150).map(value => Number(value.toFixed(4)));
-  const confidence = Math.max(0, Math.min(1, .55 * selected.correlation + .45 * selected.prominence));
+  const confidence = Math.max(0, Math.min(1, .35 * Math.max(0, selected.correlation) + .65 * selected.prominence));
   return {
     bpm: selected.bpm,
     quality: confidence,
@@ -361,15 +361,19 @@ function analyzeChannel(channel, timestamps, sampleRate) {
   };
 }
 
-function selectConsensusCandidate(candidates, candidateCount) {
-  const reliable = candidates.filter(candidate => !candidate.ambiguous && candidate.correlation >= .18);
+function selectConsensusCandidate(candidates) {
+  const reliable = candidates.filter(candidate => !candidate.ambiguous);
   if (!reliable.length) return null;
   const groups = reliable.map(candidate => reliable.filter(other => Math.abs(other.bpm - candidate.bpm) <= Math.max(5, candidate.bpm * .08)));
   groups.sort((left, right) => right.length - left.length ||
-    right.reduce((sum, item) => sum + item.correlation * item.prominence, 0) - left.reduce((sum, item) => sum + item.correlation * item.prominence, 0));
+    right.reduce((sum, item) => sum + candidateScore(item), 0) - left.reduce((sum, item) => sum + candidateScore(item), 0));
   const consensus = groups[0];
-  if (candidateCount > 1 && consensus.length < 2) return null;
-  return consensus.reduce((best, candidate) => candidate.correlation * candidate.prominence > best.correlation * best.prominence ? candidate : best);
+  return consensus.reduce((best, candidate) => candidateScore(candidate) > candidateScore(best) ? candidate : best);
+}
+
+function candidateScore(candidate) {
+  const channelPreference = candidate.name === "red" ? 1.05 : candidate.name === "green" ? 1.03 : 1;
+  return channelPreference * candidate.prominence * (.5 + .5 * Math.max(0, candidate.correlation));
 }
 
 function movingAverage(values, windowSize) {
