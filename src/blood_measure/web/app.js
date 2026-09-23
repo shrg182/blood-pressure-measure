@@ -12,7 +12,8 @@ const TRANSLATIONS = {
     addCuffReference: "Add a cuff reference", cuffInstruction: "Take a validated upper-arm cuff blood-pressure and pulse reading immediately after this recording.",
     systolic: "Systolic", diastolic: "Diastolic", savePairedReading: "Save paired reading", pairedReadings: "Paired readings",
     exportJson: "Export JSON", clearHistory: "Clear history", privacyNote: "Stored only in this browser. Clearing browser data will remove it.",
-    installApp: "Install app", importantLimitation: "Important limitation",
+    installApp: "Install app", installRequested: "Installation requested. When it finishes, find Blood Measure on the Home screen or in the app drawer.",
+    installDismissed: "Installation was not completed. Tap Install app to try again.", installComplete: "Blood Measure is installed. Find it on the Home screen or in the app drawer.", importantLimitation: "Important limitation",
     limitationText: "A phone camera detects a pulse waveform and cannot directly measure blood pressure. Personal adjustment only changes the displayed estimate and does not make it a medical measurement. Confirm every health decision or unusual reading with a validated upper-arm cuff or a clinician.",
     cameraSecure: "Camera access requires a supported browser and a secure HTTPS connection.", cameraDenied: "Camera permission was not granted.",
     cameraFailed: "The rear camera could not be started.", holdStill: "Keep your fingertip still and use gentle, steady pressure.", seconds: "{count} sec",
@@ -36,7 +37,9 @@ const TRANSLATIONS = {
     experimentalEstimate: "实验性血压估计", pulse: "脉搏", adjustedPulse: "脉搏估计", cuffPulse: "袖带脉搏", estimateWarning: "此结果由手机摄像头实验性估算。请与袖带式血压计对照；勿用于诊断、用药或紧急医疗决定。",
     addCuffReference: "添加袖带血压参考值", cuffInstruction: "请在本次测量后立即使用经过验证的上臂式血压计测量血压和脉搏。",
     systolic: "收缩压", diastolic: "舒张压", savePairedReading: "保存配对读数", pairedReadings: "配对读数", exportJson: "导出 JSON",
-    clearHistory: "清除历史", privacyNote: "数据仅保存在本浏览器中。清除浏览器数据会将其删除。", installApp: "安装应用", importantLimitation: "重要限制",
+    clearHistory: "清除历史", privacyNote: "数据仅保存在本浏览器中。清除浏览器数据会将其删除。", installApp: "安装应用",
+    installRequested: "已请求安装。安装完成后，请在主屏幕或应用抽屉中查找“血压测量”。", installDismissed: "安装未完成。请点击“安装应用”重试。",
+    installComplete: "“血压测量”已安装。请在主屏幕或应用抽屉中查找。", importantLimitation: "重要限制",
     limitationText: "手机摄像头只能检测脉搏波，无法直接测量血压。个人调整只会改变显示的估计值，不会使其成为医疗测量。任何健康决定或异常读数都应使用经过验证的上臂式血压计或咨询医生确认。",
     cameraSecure: "摄像头访问需要受支持的浏览器和安全的 HTTPS 连接。", cameraDenied: "未授予摄像头权限。", cameraFailed: "无法启动后置摄像头。",
     holdStill: "请保持指尖静止并使用轻柔、稳定的压力。", seconds: "{count} 秒", adjustFinger: "调整手指", stabilizing: "信号稳定中",
@@ -90,6 +93,7 @@ const historyList = document.querySelector("#historyList");
 const historyCount = document.querySelector("#historyCount");
 const trendChart = document.querySelector("#trendChart");
 const installButton = document.querySelector("#installButton");
+const installStatus = document.querySelector("#installStatus");
 const languageButton = document.querySelector("#languageButton");
 const themeSelect = document.querySelector("#themeSelect");
 const STORAGE_KEY = "blood-measure-paired-readings-v1";
@@ -126,6 +130,7 @@ window.addEventListener("beforeinstallprompt", event => {
 window.addEventListener("appinstalled", () => {
   installPrompt = null;
   installButton.hidden = true;
+  installStatus.textContent = t("installComplete");
 });
 applyLanguage();
 registerServiceWorker();
@@ -566,10 +571,16 @@ function drawTrend(history) {
 
 async function installApp() {
   if (!installPrompt) return;
-  installPrompt.prompt();
-  await installPrompt.userChoice;
-  installPrompt = null;
-  installButton.hidden = true;
+  const prompt = installPrompt;
+  await prompt.prompt();
+  const choice = await prompt.userChoice;
+  if (choice.outcome === "accepted") {
+    installPrompt = null;
+    installButton.disabled = true;
+    installStatus.textContent = t("installRequested");
+  } else {
+    installStatus.textContent = t("installDismissed");
+  }
 }
 
 function registerServiceWorker() {

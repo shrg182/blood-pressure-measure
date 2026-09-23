@@ -14,6 +14,9 @@ def test_mobile_web_assets_are_packaged():
         "service-worker.js",
         "icon.svg",
         "icon-maskable.svg",
+        "icon-192.png",
+        "icon-512.png",
+        "icon-maskable-512.png",
     ):
         assert web.joinpath(asset).is_file()
 
@@ -35,6 +38,17 @@ def test_interface_offers_persistent_ivory_theme():
     assert ':root[data-theme="ivory"]' in css
     assert 'const THEME_KEY = "blood-measure-theme"' in javascript
     assert "localStorage.setItem(THEME_KEY, themeSelect.value)" in javascript
+
+
+def test_android_install_has_raster_icons_and_result_feedback():
+    web = files("blood_measure").joinpath("web")
+    manifest = web.joinpath("manifest.webmanifest").read_text()
+    javascript = web.joinpath("app.js").read_text()
+
+    assert '"sizes": "192x192"' in manifest
+    assert manifest.count('"sizes": "512x512"') >= 2
+    assert 'choice.outcome === "accepted"' in javascript
+    assert 'installStatus.textContent = t("installComplete")' in javascript
 
 
 def test_usage_page_keeps_meter_page_concise():
