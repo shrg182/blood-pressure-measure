@@ -5,7 +5,7 @@ const LANGUAGE_KEY = "blood-measure-language";
 const THEME_KEY = "blood-measure-theme";
 const TRANSLATIONS = {
   en: {
-    personalReference: "PERSONAL REFERENCE", appName: "Blood Measure", usage: "Usage", appearance: "Appearance", classic: "Classic", ivory: "Ivory",
+    personalReference: "PERSONAL REFERENCE", appName: "Blood Measure", usage: "Usage", appearance: "Appearance", classic: "Classic", ivory: "Ivory", sheets: "Sheets",
     ready: "Ready", initialInstruction: "Sit comfortably and rest for a moment before starting.", signalQuality: "Signal quality",
     startMeasurement: "Start measurement", stopMeasurement: "Stop measurement", experimentalEstimate: "Experimental blood pressure estimate",
     pulse: "Pulse", adjustedPulse: "Pulse estimate", cuffPulse: "Cuff pulse", estimateWarning: "Camera-derived experimental estimate. Compare it with your cuff; do not use it for diagnosis, medication, or emergency decisions.",
@@ -32,7 +32,7 @@ const TRANSLATIONS = {
     clearConfirm: "Delete all locally stored paired readings? This cannot be undone."
   },
   zh: {
-    personalReference: "个人参考", appName: "血压测量", usage: "使用说明", appearance: "外观", classic: "经典", ivory: "象牙白", ready: "准备就绪",
+    personalReference: "个人参考", appName: "血压测量", usage: "使用说明", appearance: "外观", classic: "经典", ivory: "象牙白", sheets: "表格", ready: "准备就绪",
     initialInstruction: "开始前请舒适坐好并稍作休息。", signalQuality: "信号质量", startMeasurement: "开始测量", stopMeasurement: "停止测量",
     experimentalEstimate: "实验性血压估计", pulse: "脉搏", adjustedPulse: "脉搏估计", cuffPulse: "袖带脉搏", estimateWarning: "此结果由手机摄像头实验性估算。请与袖带式血压计对照；勿用于诊断、用药或紧急医疗决定。",
     addCuffReference: "添加袖带血压参考值", cuffInstruction: "请在本次测量后立即使用经过验证的上臂式血压计测量血压和脉搏。",

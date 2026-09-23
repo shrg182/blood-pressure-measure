@@ -4,7 +4,7 @@ const LANGUAGE_KEY = "blood-measure-language";
 const THEME_KEY = "blood-measure-theme";
 const TRANSLATIONS = {
   en: {
-    backToMeter: "Meter", appearance: "Appearance", classic: "Classic", ivory: "Ivory", guideEyebrow: "QUICK GUIDE",
+    backToMeter: "Meter", appearance: "Appearance", classic: "Classic", ivory: "Ivory", sheets: "Sheets", guideEyebrow: "QUICK GUIDE",
     usageTitle: "Usage instructions", usageIntro: "For a steadier camera pulse recording, prepare first and keep still.",
     beforeTitle: "Before measuring", beforeOne: "Sit comfortably and rest for a few minutes.",
     beforeTwo: "Use a supported browser over HTTPS and allow rear-camera access.",
@@ -18,7 +18,7 @@ const TRANSLATIONS = {
     startNow: "Go to meter"
   },
   zh: {
-    backToMeter: "测量", appearance: "外观", classic: "经典", ivory: "象牙白", guideEyebrow: "快速指南",
+    backToMeter: "测量", appearance: "外观", classic: "经典", ivory: "象牙白", sheets: "表格", guideEyebrow: "快速指南",
     usageTitle: "使用说明", usageIntro: "提前做好准备并保持静止，有助于获得更稳定的摄像头脉搏记录。",
     beforeTitle: "测量前", beforeOne: "舒适坐好并休息几分钟。", beforeTwo: "通过 HTTPS 使用受支持的浏览器，并允许访问后置摄像头。",
     beforeThree: "如果手指冰凉，请先暖手；若手机壳遮挡摄像头或闪光灯，请将其取下。", duringTitle: "记录期间",

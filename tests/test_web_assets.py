@@ -40,6 +40,17 @@ def test_interface_offers_persistent_ivory_theme():
     assert "localStorage.setItem(THEME_KEY, themeSelect.value)" in javascript
 
 
+def test_interface_offers_persistent_sheets_theme():
+    web = files("blood_measure").joinpath("web")
+    html = web.joinpath("index.html").read_text()
+    usage = web.joinpath("usage.html").read_text()
+    css = web.joinpath("styles.css").read_text()
+
+    assert '<option value="sheets"' in html
+    assert '<option value="sheets"' in usage
+    assert ':root[data-theme="sheets"]' in css
+
+
 def test_android_install_has_raster_icons_and_result_feedback():
     web = files("blood_measure").joinpath("web")
     manifest = web.joinpath("manifest.webmanifest").read_text()

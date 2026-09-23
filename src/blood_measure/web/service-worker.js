@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "blood-measure-v8";
+const CACHE_NAME = "blood-measure-v9";
 const APP_SHELL = ["./", "index.html", "usage.html", "styles.css", "app.js", "usage.js", "manifest.webmanifest", "icon.svg", "icon-maskable.svg", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 self.addEventListener("install", event => {
