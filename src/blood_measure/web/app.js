@@ -27,7 +27,8 @@ const TRANSLATIONS = {
     noPulse: "No reliable pulse was detected. Cover the camera and flash completely.", lowQuality: "Signal quality was too low. Keep your fingertip still and try again.",
     unsuccessful: "Measurement unsuccessful", completeFirst: "Complete a fingertip recording first.", invalidPressure: "Systolic should be higher than diastolic.",
     invalidPulse: "Enter a cuff pulse between 35 and 220 BPM.",
-    storageFailed: "This browser could not store the reading.", saved: "Paired reading saved locally.", savedCount: "{count} saved",
+    storageFailed: "This browser could not store the reading.", saved: "Paired reading saved locally.",
+    savedMismatch: "Saved for review, but excluded from calibration because camera and cuff pulse differ too much.", savedCount: "{count} saved",
     historyDetail: "camera {bpm} BPM · cuff {cuffPulse} BPM · {quality}% confidence{estimate}", cameraEstimate: " · camera estimate {systolic}/{diastolic}",
     clearConfirm: "Delete all locally stored paired readings? This cannot be undone."
   },
@@ -50,7 +51,7 @@ const TRANSLATIONS = {
     notEnoughFrames: "摄像头帧数不足，请重试。", tooShort: "测量时间过短，请重试。", exposure: "请调整手指，避免画面过暗或过度曝光。",
     noPulse: "未检测到可靠的脉搏波。请完全覆盖摄像头和闪光灯。", lowQuality: "信号质量过低。请保持指尖静止后重试。", unsuccessful: "测量未成功",
     completeFirst: "请先完成一次指尖测量。", invalidPressure: "收缩压应高于舒张压。", invalidPulse: "请输入 35 至 220 BPM 的袖带脉搏。", storageFailed: "此浏览器无法保存该读数。",
-    saved: "配对读数已保存在本机。", savedCount: "已保存 {count} 条", historyDetail: "摄像头 {bpm} BPM · 袖带 {cuffPulse} BPM · 置信度 {quality}%{estimate}",
+    saved: "配对读数已保存在本机。", savedMismatch: "已保存供查看，但摄像头与袖带脉搏差异过大，因此不会用于校准。", savedCount: "已保存 {count} 条", historyDetail: "摄像头 {bpm} BPM · 袖带 {cuffPulse} BPM · 置信度 {quality}%{estimate}",
     cameraEstimate: " · 摄像头估计 {systolic}/{diastolic}", clearConfirm: "删除所有保存在本机的配对读数？此操作无法撤销。"
   }
 };
@@ -284,34 +285,34 @@ function analyzePPG(frames) {
   if (frames.length < 40) throw new Error(t("notEnoughFrames"));
   const duration = frames.at(-1).timestamp - frames[0].timestamp;
   if (duration < 8) throw new Error(t("tooShort"));
-  const intervals = frames.slice(1).map((frame, index) => frame.timestamp - frames[index].timestamp);
+  // Torch and auto-exposure settling create a large startup transient. It was
+  // the dominant artifact in the Xiaomi recordings, so exclude it here.
+  const analysisStart = frames[0].timestamp + 1.5;
+  const analysisEnd = frames.at(-1).timestamp - .25;
+  const analysisFrames = frames.filter(frame => frame.timestamp >= analysisStart && frame.timestamp <= analysisEnd);
+  if (analysisFrames.length < 40) throw new Error(t("notEnoughFrames"));
+  const intervals = analysisFrames.slice(1).map((frame, index) => frame.timestamp - analysisFrames[index].timestamp);
   const sampleRate = 1 / median(intervals);
+  const intervalMean = average(intervals);
+  const timingJitter = standardDeviation(intervals) / intervalMean;
+  if (!Number.isFinite(sampleRate) || sampleRate < 5 || sampleRate > 120 || timingJitter > .25) throw new Error(t("lowQuality"));
   const channels = ["red", "green", "blue"].map(name => {
-    const values = frames.map(frame => frame[name]);
+    const values = analysisFrames.map(frame => frame[name]);
     const clipped = values.filter(value => value <= 1 || value >= 254).length / values.length;
     return { name, values, clipped };
   });
   const usableChannels = channels.filter(channel => average(channel.values) >= 8 && channel.clipped <= .35);
   if (!usableChannels.length) throw new Error(t("exposure"));
-  const minLag = Math.max(1, Math.round(sampleRate * 60 / 200));
-  const maxLag = Math.min(Math.floor(frames.length / 2), Math.round(sampleRate * 60 / 40));
-  const candidates = usableChannels.map(channel => analyzeChannel(channel, sampleRate, minLag, maxLag)).filter(Boolean);
+  const timestamps = analysisFrames.map(frame => frame.timestamp);
+  const candidates = usableChannels.map(channel => analyzeChannel(channel, timestamps, sampleRate)).filter(Boolean);
   if (!candidates.length) throw new Error(t("noPulse"));
-  const selected = candidates.reduce((best, candidate) => candidate.peak.value > best.peak.value ? candidate : best);
-  const { centered, scale, signal, correlations, peakIndex, peak } = selected;
-  if (peak.value < .18) throw new Error(t("lowQuality"));
-  let lag = peak.lag;
-  if (peakIndex > 0 && peakIndex < correlations.length - 1) {
-    const previous = correlations[peakIndex - 1].value, current = peak.value, next = correlations[peakIndex + 1].value;
-    const curvature = previous - 2 * current + next;
-    if (curvature) lag += .5 * (previous - next) / curvature;
-  }
+  const selected = selectConsensusCandidate(candidates, candidates.length);
+  if (!selected || selected.correlation < .18 || selected.ambiguous) throw new Error(t("lowQuality"));
+  const { centered, scale } = selected;
   const waveform = downsample(centered.map(value => value / scale), 150).map(value => Number(value.toFixed(4)));
-  // A correlation coefficient is not itself a percentage. Map the useful
-  // real-camera range (roughly .10-.60) onto a user-facing confidence scale.
-  const confidence = Math.max(0, Math.min(1, (peak.value - .10) / .50));
+  const confidence = Math.max(0, Math.min(1, .55 * selected.correlation + .45 * selected.prominence));
   return {
-    bpm: 60 * sampleRate / lag,
+    bpm: selected.bpm,
     quality: confidence,
     durationSeconds: duration,
     sampleRateHz: sampleRate,
@@ -320,21 +321,55 @@ function analyzePPG(frames) {
   };
 }
 
-function analyzeChannel(channel, sampleRate, minLag, maxLag) {
+function analyzeChannel(channel, timestamps, sampleRate) {
   const baseline = movingAverage(channel.values, Math.max(3, Math.round(sampleRate * .75)));
   const centered = channel.values.map((value, index) => value - baseline[index]);
   const scale = Math.sqrt(average(centered.map(value => value * value)));
   if (scale < .15) return null;
   const normalized = centered.map(value => value / scale);
   const signal = movingAverage(normalized, Math.max(1, Math.round(sampleRate * .10)));
-  const correlations = [];
-  for (let lag = minLag; lag <= maxLag; lag++) correlations.push({ lag, value: autocorrelation(signal, lag) });
-  const strongest = Math.max(...correlations.map(item => item.value));
-  const peakIndex = correlations.findIndex((item, index) => item.value >= strongest * .95 &&
-    (index === 0 || item.value >= correlations[index - 1].value) &&
-    (index === correlations.length - 1 || item.value >= correlations[index + 1].value));
-  if (peakIndex < 0) return null;
-  return { name: channel.name, centered, scale, signal, correlations, peakIndex, peak: correlations[peakIndex] };
+  const powers = [];
+  const origin = timestamps[0];
+  for (let bpm = 40; bpm <= 200; bpm += .5) {
+    let real = 0, imaginary = 0;
+    signal.forEach((value, index) => {
+      const window = signal.length > 1 ? .5 - .5 * Math.cos(2 * Math.PI * index / (signal.length - 1)) : 1;
+      const phase = 2 * Math.PI * (bpm / 60) * (timestamps[index] - origin);
+      real += value * window * Math.cos(phase);
+      imaginary += value * window * Math.sin(phase);
+    });
+    powers.push({ bpm, value: real * real + imaginary * imaginary });
+  }
+  const peaks = powers.filter((item, index) =>
+    (index === 0 || item.value >= powers[index - 1].value) &&
+    (index === powers.length - 1 || item.value >= powers[index + 1].value)
+  ).sort((left, right) => right.value - left.value);
+  if (!peaks.length || peaks[0].value <= 0) return null;
+  const strongest = peaks[0];
+  const competing = peaks.find(item => Math.abs(item.bpm - strongest.bpm) >= 10);
+  const competition = competing ? competing.value / strongest.value : 0;
+  const lag = Math.max(1, Math.round(sampleRate * 60 / strongest.bpm));
+  const correlation = autocorrelation(signal, lag);
+  return {
+    name: channel.name,
+    centered,
+    scale,
+    bpm: strongest.bpm,
+    correlation,
+    prominence: Math.max(0, 1 - competition),
+    ambiguous: competition >= .65
+  };
+}
+
+function selectConsensusCandidate(candidates, candidateCount) {
+  const reliable = candidates.filter(candidate => !candidate.ambiguous && candidate.correlation >= .18);
+  if (!reliable.length) return null;
+  const groups = reliable.map(candidate => reliable.filter(other => Math.abs(other.bpm - candidate.bpm) <= Math.max(5, candidate.bpm * .08)));
+  groups.sort((left, right) => right.length - left.length ||
+    right.reduce((sum, item) => sum + item.correlation * item.prominence, 0) - left.reduce((sum, item) => sum + item.correlation * item.prominence, 0));
+  const consensus = groups[0];
+  if (candidateCount > 1 && consensus.length < 2) return null;
+  return consensus.reduce((best, candidate) => candidate.correlation * candidate.prominence > best.correlation * best.prominence ? candidate : best);
 }
 
 function movingAverage(values, windowSize) {
@@ -392,7 +427,7 @@ function estimateBloodPressure(reading, history = []) {
 
   const comparisons = history.filter(item =>
     Number.isFinite(item?.cuff?.systolic) && Number.isFinite(item?.cuff?.diastolic) &&
-    Number.isFinite(item?.ppg?.bpm) && item.ppg.quality >= .40
+    Number.isFinite(item?.ppg?.bpm) && item.ppg.quality >= .40 && isUsableComparison(item)
   ).slice(0, 10);
   let systolicCorrection = 0, diastolicCorrection = 0;
   if (comparisons.length >= 3) {
@@ -419,7 +454,7 @@ function estimateBloodPressure(reading, history = []) {
 
 function adjustPulse(reading, history = []) {
   const comparisons = history
-    .filter(item => Number.isFinite(item?.cuff?.pulse) && Number.isFinite(item?.ppg?.bpm) && item.ppg.quality >= .40)
+    .filter(item => Number.isFinite(item?.cuff?.pulse) && Number.isFinite(item?.ppg?.bpm) && item.ppg.quality >= .40 && isUsableComparison(item))
     .slice(0, 10);
   if (comparisons.length < 3) {
     return { bpm: Math.round(reading.bpm), rawBpm: reading.bpm, correction: 0, referenceCount: comparisons.length, method: "camera-ppg-v1" };
@@ -433,6 +468,11 @@ function adjustPulse(reading, history = []) {
     referenceCount: comparisons.length,
     method: "personal-median-offset-v1"
   };
+}
+
+function isUsableComparison(item) {
+  if (!Number.isFinite(item?.cuff?.pulse) || !Number.isFinite(item?.ppg?.bpm)) return false;
+  return Math.abs(item.cuff.pulse - item.ppg.bpm) <= Math.max(15, item.cuff.pulse * .20);
 }
 
 function downsample(values, targetLength) {
@@ -486,7 +526,7 @@ function saveReferenceReading(event) {
   }
   referenceForm.reset();
   latestReading = null;
-  saveMessage.textContent = t("saved");
+  saveMessage.textContent = isUsableComparison(history[0]) ? t("saved") : t("savedMismatch");
   renderHistory();
 }
 

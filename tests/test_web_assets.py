@@ -97,7 +97,17 @@ def test_signal_quality_uses_analyzed_camera_frames():
     assert "requestVideoFrameCallback" in javascript
     assert "function analyzeChannel" in javascript
     assert "function setQualityDisplay" in javascript
-    assert "(peak.value - .10) / .50" in javascript
+    assert "const analysisStart = frames[0].timestamp + 1.5" in javascript
+    assert "function selectConsensusCandidate" in javascript
+    assert "competition >= .65" in javascript
+
+
+def test_mismatched_camera_pulse_is_excluded_from_calibration():
+    javascript = files("blood_measure").joinpath("web", "app.js").read_text()
+
+    assert "function isUsableComparison" in javascript
+    assert "Math.max(15, item.cuff.pulse * .20)" in javascript
+    assert 't("savedMismatch")' in javascript
 
 
 def test_interface_supports_english_and_chinese():
