@@ -37,7 +37,7 @@ Start the local web interface:
 blood-measure-web
 ```
 
-Then open `http://localhost:8000` in a browser and allow rear-camera access.
+Then open `http://localhost:8001` in a browser and allow rear-camera access.
 Mobile browsers require a secure HTTPS origin for camera access when the page
 is hosted on another device. The interface records a 15-second fingertip PPG
 sample, reports live signal quality, and estimates pulse rate only.

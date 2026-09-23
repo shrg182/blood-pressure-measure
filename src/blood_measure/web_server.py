@@ -21,7 +21,7 @@ class BloodMeasureHandler(SimpleHTTPRequestHandler):
 def main() -> None:
     parser = argparse.ArgumentParser(description="Serve the Blood Measure mobile interface.")
     parser.add_argument("--host", default="127.0.0.1", help="Address to listen on")
-    parser.add_argument("--port", default=8000, type=int, help="Port to listen on")
+    parser.add_argument("--port", default=8001, type=int, help="Port to listen on")
     parser.add_argument("--certfile", type=Path, help="TLS certificate in PEM format")
     parser.add_argument("--keyfile", type=Path, help="TLS private key in PEM format")
     args = parser.parse_args()
