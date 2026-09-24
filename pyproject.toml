@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "blood-measure"
-version = "0.1.0"
+version = "0.4.0"
 description = "A simple blood pressure measurement and risk classification tool."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,4 +25,4 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-blood_measure = ["web/*.html", "web/*.css", "web/*.js", "web/*.webmanifest", "web/*.svg"]
+blood_measure = ["web/*.html", "web/*.css", "web/*.js", "web/*.webmanifest", "web/*.svg", "web/*.png"]

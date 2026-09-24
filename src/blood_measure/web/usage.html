@@ -64,8 +64,19 @@
       <p data-i18n="privacyText">Paired readings and preferences stay in this browser. Export readings before clearing browser data if you want to keep a copy.</p>
     </section>
 
+    <section class="guide-card version-card" aria-labelledby="versionTitle">
+      <h2 id="versionTitle" data-i18n="versionTitle">Version and updates</h2>
+      <p id="versionDetails"></p>
+      <p id="updateStatus" role="status" data-i18n="updateNotChecked">Update status not checked.</p>
+      <div class="version-actions">
+        <button id="checkUpdateButton" class="text-button" type="button" data-i18n="checkUpdates">Check for updates</button>
+        <button id="reloadUpdateButton" class="secondary" type="button" hidden data-i18n="reloadUpdate">Reload to update</button>
+      </div>
+    </section>
+
     <a class="primary-link" href="index.html" data-i18n="startNow">Go to meter</a>
   </main>
+  <script src="version.js"></script>
   <script src="usage.js"></script>
 </body>
 </html>

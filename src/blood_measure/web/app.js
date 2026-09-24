@@ -519,6 +519,7 @@ function saveReferenceReading(event) {
   const history = loadHistory();
   history.unshift({
     recordedAt: new Date().toISOString(),
+    app: window.BLOOD_MEASURE_BUILD || null,
     cuff: { systolic, diastolic, pulse: cuffPulse },
     ppg: latestReading
   });
@@ -564,7 +565,12 @@ function renderHistory() {
 function exportHistory() {
   const history = loadHistory();
   if (!history.length) return;
-  const blob = new Blob([JSON.stringify({ format: "blood-measure-v1", readings: history }, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify({
+    format: "blood-measure-v2",
+    app: window.BLOOD_MEASURE_BUILD || null,
+    exportedAt: new Date().toISOString(),
+    readings: history
+  }, null, 2)], { type: "application/json" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = `blood-measure-${new Date().toISOString().slice(0, 10)}.json`;

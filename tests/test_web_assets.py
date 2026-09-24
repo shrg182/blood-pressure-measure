@@ -10,6 +10,7 @@ def test_mobile_web_assets_are_packaged():
         "styles.css",
         "app.js",
         "usage.js",
+        "version.js",
         "manifest.webmanifest",
         "service-worker.js",
         "icon.svg",
@@ -26,6 +27,21 @@ def test_interface_describes_camera_bp_limitation():
 
     assert "cannot directly measure blood pressure" in html
     assert "validated upper-arm cuff" in html
+
+
+def test_usage_page_reports_running_version_and_can_check_for_updates():
+    web = files("blood_measure").joinpath("web")
+    usage = web.joinpath("usage.html").read_text()
+    javascript = web.joinpath("usage.js").read_text()
+    version = web.joinpath("version.js").read_text()
+    app = web.joinpath("app.js").read_text()
+
+    assert 'id="versionDetails"' in usage
+    assert 'id="checkUpdateButton"' in usage
+    assert 'version: "0.4.0"' in version
+    assert "registration.update()" in javascript
+    assert 'format: "blood-measure-v2"' in app
+    assert "window.BLOOD_MEASURE_BUILD" in app
 
 
 def test_interface_offers_persistent_ivory_theme():

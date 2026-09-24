@@ -208,6 +208,10 @@ details p { margin-bottom: 0; }
 .guide-card ol { padding-left: 1.3rem; }
 .guide-card li + li { margin-top: 7px; }
 .caution-card { background: color-mix(in srgb, var(--surface) 82%, #ead5c2); }
+.version-card p + p { margin-top: 8px; }
+.version-actions { display: flex; gap: 8px; margin-top: 12px; }
+.version-actions button { margin: 0; padding: 10px 12px; font-size: .8rem; }
+.version-actions button.secondary { background: var(--accent); color: #fff; }
 .primary-link { display: block; margin: 20px 0 8px; padding: 15px 20px; border-radius: var(--control-radius); background: var(--accent); color: white; font-weight: 760; text-align: center; text-decoration: none; box-shadow: 0 9px 20px #69502d2b; }
 :root[data-theme="sheets"] .primary-link { box-shadow: none; font-weight: 600; }
 

@@ -1,7 +1,7 @@
 "use strict";
 
-const CACHE_NAME = "blood-measure-v11";
-const APP_SHELL = ["./", "index.html", "usage.html", "styles.css", "app.js", "usage.js", "manifest.webmanifest", "icon.svg", "icon-maskable.svg", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
+const CACHE_NAME = "blood-measure-v12";
+const APP_SHELL = ["./", "index.html", "usage.html", "styles.css", "app.js", "usage.js", "version.js", "manifest.webmanifest", "icon.svg", "icon-maskable.svg", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
