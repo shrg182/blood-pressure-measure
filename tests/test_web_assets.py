@@ -1,4 +1,5 @@
 from importlib.resources import files
+from pathlib import Path
 
 
 def test_mobile_web_assets_are_packaged():
@@ -42,6 +43,14 @@ def test_usage_page_reports_running_version_and_can_check_for_updates():
     assert "registration.update()" in javascript
     assert 'format: "blood-measure-v2"' in app
     assert "window.BLOOD_MEASURE_BUILD" in app
+
+
+def test_readme_version_matches_web_application():
+    readme = Path(__file__).parents[1].joinpath("README.md").read_text()
+    version = files("blood_measure").joinpath("web", "version.js").read_text()
+
+    assert "Current version: 0.4.0" in readme
+    assert 'version: "0.4.0"' in version
 
 
 def test_interface_offers_persistent_ivory_theme():
