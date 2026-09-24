@@ -5,7 +5,7 @@ const LANGUAGE_KEY = "blood-measure-language";
 const THEME_KEY = "blood-measure-theme";
 const TRANSLATIONS = {
   en: {
-    personalReference: "PERSONAL REFERENCE", appName: "Blood Measure", usage: "Usage", appearance: "Appearance", classic: "Classic", ivory: "Ivory", sheets: "Sheets",
+    personalReference: "PERSONAL REFERENCE", appName: "Blood Measure", pulseAnalysis: "Pulse", usage: "Usage", appearance: "Appearance", classic: "Classic", ivory: "Ivory", sheets: "Sheets",
     ready: "Ready", initialInstruction: "Sit comfortably and rest for a moment before starting.", signalQuality: "Signal quality",
     startMeasurement: "Start measurement", stopMeasurement: "Stop measurement", experimentalEstimate: "Experimental blood pressure estimate",
     pulse: "Pulse", adjustedPulse: "Pulse estimate", cuffPulse: "Cuff pulse", estimateWarning: "Camera-derived experimental estimate. Compare it with your cuff; do not use it for diagnosis, medication, or emergency decisions.",
@@ -33,7 +33,7 @@ const TRANSLATIONS = {
     clearConfirm: "Delete all locally stored paired readings? This cannot be undone."
   },
   zh: {
-    personalReference: "个人参考", appName: "血压测量", usage: "使用说明", appearance: "外观", classic: "经典", ivory: "象牙白", sheets: "表格", ready: "准备就绪",
+    personalReference: "个人参考", appName: "血压测量", pulseAnalysis: "脉搏", usage: "使用说明", appearance: "外观", classic: "经典", ivory: "象牙白", sheets: "表格", ready: "准备就绪",
     initialInstruction: "开始前请舒适坐好并稍作休息。", signalQuality: "信号质量", startMeasurement: "开始测量", stopMeasurement: "停止测量",
     experimentalEstimate: "实验性血压估计", pulse: "脉搏", adjustedPulse: "脉搏估计", cuffPulse: "袖带脉搏", estimateWarning: "此结果由手机摄像头实验性估算。请与袖带式血压计对照；勿用于诊断、用药或紧急医疗决定。",
     addCuffReference: "添加袖带血压参考值", cuffInstruction: "请在本次测量后立即使用经过验证的上臂式血压计测量血压和脉搏。",
@@ -242,7 +242,7 @@ function updateQuality() {
 function finishMeasurement() {
   cancelCapture();
   try {
-    const reading = analyzePPG(samples);
+    const reading = window.BloodMeasurePPG.analyze(samples);
     const history = loadHistory();
     reading.bpEstimate = estimateBloodPressure(reading, history);
     reading.pulseEstimate = adjustPulse(reading, history);
@@ -261,7 +261,7 @@ function finishMeasurement() {
     result.hidden = false;
     instruction.textContent = t("complete");
   } catch (error) {
-    showMeasurementFailure(error.message);
+    showMeasurementFailure(t(error.code || error.message));
   }
   releaseCamera();
 }
@@ -279,119 +279,6 @@ function releaseCamera() {
   video.srcObject = null;
   button.textContent = t("startMeasurement");
   countdown.textContent = t("ready");
-}
-
-function analyzePPG(frames) {
-  if (frames.length < 40) throw new Error(t("notEnoughFrames"));
-  const duration = frames.at(-1).timestamp - frames[0].timestamp;
-  if (duration < 8) throw new Error(t("tooShort"));
-  // Torch and auto-exposure settling create a large startup transient. It was
-  // the dominant artifact in the Xiaomi recordings, so exclude it here.
-  const analysisStart = frames[0].timestamp + 1.5;
-  const analysisEnd = frames.at(-1).timestamp - .25;
-  const analysisFrames = frames.filter(frame => frame.timestamp >= analysisStart && frame.timestamp <= analysisEnd);
-  if (analysisFrames.length < 40) throw new Error(t("notEnoughFrames"));
-  const intervals = analysisFrames.slice(1).map((frame, index) => frame.timestamp - analysisFrames[index].timestamp);
-  const sampleRate = 1 / median(intervals);
-  const intervalMean = average(intervals);
-  const timingJitter = standardDeviation(intervals) / intervalMean;
-  if (!Number.isFinite(sampleRate) || sampleRate < 5 || sampleRate > 120 || timingJitter > .75) throw new Error(t("lowQuality"));
-  const channels = ["red", "green", "blue"].map(name => {
-    const values = analysisFrames.map(frame => frame[name]);
-    const clipped = values.filter(value => value <= 1 || value >= 254).length / values.length;
-    return { name, values, clipped };
-  });
-  const usableChannels = channels.filter(channel => average(channel.values) >= 8 && channel.clipped <= .35);
-  if (!usableChannels.length) throw new Error(t("exposure"));
-  const timestamps = analysisFrames.map(frame => frame.timestamp);
-  const candidates = usableChannels.map(channel => analyzeChannel(channel, timestamps, sampleRate)).filter(Boolean);
-  if (!candidates.length) throw new Error(t("noPulse"));
-  const selected = selectConsensusCandidate(candidates);
-  if (!selected || selected.ambiguous) throw new Error(t("lowQuality"));
-  const { centered, scale } = selected;
-  const waveform = downsample(centered.map(value => value / scale), 150).map(value => Number(value.toFixed(4)));
-  const confidence = Math.max(0, Math.min(1, .35 * Math.max(0, selected.correlation) + .65 * selected.prominence));
-  return {
-    bpm: selected.bpm,
-    quality: confidence,
-    durationSeconds: duration,
-    sampleRateHz: sampleRate,
-    channel: selected.name,
-    waveform
-  };
-}
-
-function analyzeChannel(channel, timestamps, sampleRate) {
-  const baseline = movingAverage(channel.values, Math.max(3, Math.round(sampleRate * .75)));
-  const centered = channel.values.map((value, index) => value - baseline[index]);
-  const scale = Math.sqrt(average(centered.map(value => value * value)));
-  if (scale < .15) return null;
-  const normalized = centered.map(value => value / scale);
-  const signal = movingAverage(normalized, Math.max(1, Math.round(sampleRate * .10)));
-  const powers = [];
-  const origin = timestamps[0];
-  for (let bpm = 40; bpm <= 200; bpm += .5) {
-    let real = 0, imaginary = 0;
-    signal.forEach((value, index) => {
-      const window = signal.length > 1 ? .5 - .5 * Math.cos(2 * Math.PI * index / (signal.length - 1)) : 1;
-      const phase = 2 * Math.PI * (bpm / 60) * (timestamps[index] - origin);
-      real += value * window * Math.cos(phase);
-      imaginary += value * window * Math.sin(phase);
-    });
-    powers.push({ bpm, value: real * real + imaginary * imaginary });
-  }
-  const peaks = powers.filter((item, index) =>
-    (index === 0 || item.value >= powers[index - 1].value) &&
-    (index === powers.length - 1 || item.value >= powers[index + 1].value)
-  ).sort((left, right) => right.value - left.value);
-  if (!peaks.length || peaks[0].value <= 0) return null;
-  const strongest = peaks[0];
-  const competing = peaks.find(item => Math.abs(item.bpm - strongest.bpm) >= 10);
-  const competition = competing ? competing.value / strongest.value : 0;
-  const lag = Math.max(1, Math.round(sampleRate * 60 / strongest.bpm));
-  const correlation = autocorrelation(signal, lag);
-  return {
-    name: channel.name,
-    centered,
-    scale,
-    bpm: strongest.bpm,
-    correlation,
-    prominence: Math.max(0, 1 - competition),
-    ambiguous: competition >= .65
-  };
-}
-
-function selectConsensusCandidate(candidates) {
-  const reliable = candidates.filter(candidate => !candidate.ambiguous);
-  if (!reliable.length) return null;
-  const groups = reliable.map(candidate => reliable.filter(other => Math.abs(other.bpm - candidate.bpm) <= Math.max(5, candidate.bpm * .08)));
-  groups.sort((left, right) => right.length - left.length ||
-    right.reduce((sum, item) => sum + candidateScore(item), 0) - left.reduce((sum, item) => sum + candidateScore(item), 0));
-  const consensus = groups[0];
-  return consensus.reduce((best, candidate) => candidateScore(candidate) > candidateScore(best) ? candidate : best);
-}
-
-function candidateScore(candidate) {
-  const channelPreference = candidate.name === "red" ? 1.05 : candidate.name === "green" ? 1.03 : 1;
-  return channelPreference * candidate.prominence * (.5 + .5 * Math.max(0, candidate.correlation));
-}
-
-function movingAverage(values, windowSize) {
-  const radius = Math.floor(windowSize / 2), prefix = [0];
-  values.forEach(value => prefix.push(prefix.at(-1) + value));
-  return values.map((_, index) => {
-    const start = Math.max(0, index - radius), end = Math.min(values.length, index + radius + 1);
-    return (prefix[end] - prefix[start]) / (end - start);
-  });
-}
-
-function autocorrelation(values, lag) {
-  let product = 0, leftEnergy = 0, rightEnergy = 0;
-  for (let index = 0; index < values.length - lag; index++) {
-    product += values[index] * values[index + lag];
-    leftEnergy += values[index] ** 2; rightEnergy += values[index + lag] ** 2;
-  }
-  return product / Math.sqrt(leftEnergy * rightEnergy);
 }
 
 function average(values) { return values.reduce((sum, value) => sum + value, 0) / values.length; }
@@ -477,17 +364,6 @@ function adjustPulse(reading, history = []) {
 function isUsableComparison(item) {
   if (!Number.isFinite(item?.cuff?.pulse) || !Number.isFinite(item?.ppg?.bpm)) return false;
   return Math.abs(item.cuff.pulse - item.ppg.bpm) <= Math.max(15, item.cuff.pulse * .20);
-}
-
-function downsample(values, targetLength) {
-  if (values.length <= targetLength) return values;
-  const result = [];
-  for (let bucket = 0; bucket < targetLength; bucket++) {
-    const start = Math.floor(bucket * values.length / targetLength);
-    const end = Math.max(start + 1, Math.floor((bucket + 1) * values.length / targetLength));
-    result.push(average(values.slice(start, end)));
-  }
-  return result;
 }
 
 function loadHistory() {

@@ -4,7 +4,7 @@ A research prototype for processing fingertip camera signals on a mobile device.
 It extracts a photoplethysmography (PPG) waveform, estimates pulse rate, and
 shows an experimental blood-pressure comparison value.
 
-**Current version: 0.4.0** · Released 24 September 2026
+**Current version: 0.5.0** · Released 24 September 2026
 
 The deployed Git revision and update status are shown inside the application
 under **Usage → Version and updates**.
@@ -16,6 +16,8 @@ under **Usage → Version and updates**.
 - Expose a CLI for quick checkups
 - Analyze timestamped camera-frame RGB samples and reject unreliable recordings
 - Estimate pulse rate from a fingertip PPG waveform
+- Run a separate 60-second pulse analysis with beat-to-beat interval display
+  and cautious, non-diagnostic regularity wording
 
 ## Important limitation
 

@@ -7,9 +7,12 @@ def test_mobile_web_assets_are_packaged():
 
     for asset in (
         "index.html",
+        "pulse.html",
         "usage.html",
         "styles.css",
         "app.js",
+        "pulse.js",
+        "ppg-analysis.js",
         "usage.js",
         "version.js",
         "manifest.webmanifest",
@@ -39,7 +42,7 @@ def test_usage_page_reports_running_version_and_can_check_for_updates():
 
     assert 'id="versionDetails"' in usage
     assert 'id="checkUpdateButton"' in usage
-    assert 'version: "0.4.0"' in version
+    assert 'version: "0.5.0"' in version
     assert "registration.update()" in javascript
     assert 'format: "blood-measure-v2"' in app
     assert "window.BLOOD_MEASURE_BUILD" in app
@@ -49,8 +52,8 @@ def test_readme_version_matches_web_application():
     readme = Path(__file__).parents[1].joinpath("README.md").read_text()
     version = files("blood_measure").joinpath("web", "version.js").read_text()
 
-    assert "Current version: 0.4.0" in readme
-    assert 'version: "0.4.0"' in version
+    assert "Current version: 0.5.0" in readme
+    assert 'version: "0.5.0"' in version
 
 
 def test_interface_offers_persistent_ivory_theme():
@@ -117,15 +120,31 @@ def test_interface_labels_experimental_pressure_estimate():
 
 
 def test_signal_quality_uses_analyzed_camera_frames():
-    javascript = files("blood_measure").joinpath("web", "app.js").read_text()
+    web = files("blood_measure").joinpath("web")
+    app = web.joinpath("app.js").read_text()
+    analysis = web.joinpath("ppg-analysis.js").read_text()
 
-    assert "requestVideoFrameCallback" in javascript
-    assert "function analyzeChannel" in javascript
-    assert "function setQualityDisplay" in javascript
-    assert "const analysisStart = frames[0].timestamp + 1.5" in javascript
-    assert "function selectConsensusCandidate" in javascript
-    assert "function candidateScore" in javascript
-    assert "competition >= .65" in javascript
+    assert "requestVideoFrameCallback" in app
+    assert "window.BloodMeasurePPG.analyze(samples)" in app
+    assert "function setQualityDisplay" in app
+    assert "const analysisStart = frames[0].timestamp + 1.5" in analysis
+    assert "function selectConsensusCandidate" in analysis
+    assert "function candidateScore" in analysis
+    assert "competition >= .65" in analysis
+
+
+def test_pulse_analysis_is_separate_and_non_diagnostic():
+    web = files("blood_measure").joinpath("web")
+    html = web.joinpath("pulse.html").read_text()
+    javascript = web.joinpath("pulse.js").read_text()
+    analysis = web.joinpath("ppg-analysis.js").read_text()
+
+    assert "60-second recording" in html.lower()
+    assert "cannot diagnose atrial fibrillation" in html
+    assert "const RECORDING_SECONDS = 60" in javascript
+    assert "blood-measure-pulse-sessions-v1" in javascript
+    assert "beatIntervalsMs" in analysis
+    assert 'format: "blood-measure-pulse-v1"' in javascript
 
 
 def test_mismatched_camera_pulse_is_excluded_from_calibration():
