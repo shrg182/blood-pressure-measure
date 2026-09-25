@@ -5,7 +5,7 @@ const LANGUAGE_KEY = "blood-measure-language";
 const THEME_KEY = "blood-measure-theme";
 const TRANSLATIONS = {
   en: {
-    personalReference: "PERSONAL REFERENCE", appName: "Blood Measure", pulseAnalysis: "Pulse", usage: "Usage", appearance: "Appearance", classic: "Classic", ivory: "Ivory", sheets: "Sheets",
+    personalReference: "PERSONAL REFERENCE", appName: "Blood Measure", dashboard: "Dashboard", pulseAnalysis: "Pulse", usage: "Usage", appearance: "Appearance", classic: "Classic", ivory: "Ivory", sheets: "Sheets",
     ready: "Ready", initialInstruction: "Sit comfortably and rest for a moment before starting.", signalQuality: "Signal quality",
     startMeasurement: "Start measurement", stopMeasurement: "Stop measurement", experimentalEstimate: "Experimental blood pressure estimate",
     pulse: "Pulse", adjustedPulse: "Pulse estimate", cuffPulse: "Cuff pulse", estimateWarning: "Camera-derived experimental estimate. Compare it with your cuff; do not use it for diagnosis, medication, or emergency decisions.",
@@ -28,12 +28,12 @@ const TRANSLATIONS = {
     unsuccessful: "Measurement unsuccessful", completeFirst: "Complete a fingertip recording first.", invalidPressure: "Systolic should be higher than diastolic.",
     invalidPulse: "Enter a cuff pulse between 35 and 220 BPM.",
     storageFailed: "This browser could not store the reading.", saved: "Paired reading saved locally.",
-    savedMismatch: "Saved for review, but excluded from calibration because camera and cuff pulse differ too much.", savedCount: "{count} saved",
+    savedMismatch: "Saved for review, but excluded from calibration because camera and cuff pulse differ too much.", savedCount: "{count} saved", measurementHistory: "Measurement history", clearMeasurementHistory: "Clear measurements", experimentalHistory: "Camera-derived experimental results, stored only in this browser.", measurementDetail: "Pulse {bpm} BPM · {quality}% confidence", clearMeasurementConfirm: "Delete all camera measurement results? This cannot be undone.",
     historyDetail: "camera {bpm} BPM · cuff {cuffPulse} BPM · {quality}% confidence{estimate}", cameraEstimate: " · camera estimate {systolic}/{diastolic}",
     clearConfirm: "Delete all locally stored paired readings? This cannot be undone."
   },
   zh: {
-    personalReference: "个人参考", appName: "血压测量", pulseAnalysis: "脉搏", usage: "使用说明", appearance: "外观", classic: "经典", ivory: "象牙白", sheets: "表格", ready: "准备就绪",
+    personalReference: "个人参考", appName: "血压测量", dashboard: "仪表板", pulseAnalysis: "脉搏", usage: "使用说明", appearance: "外观", classic: "经典", ivory: "象牙白", sheets: "表格", ready: "准备就绪",
     initialInstruction: "开始前请舒适坐好并稍作休息。", signalQuality: "信号质量", startMeasurement: "开始测量", stopMeasurement: "停止测量",
     experimentalEstimate: "实验性血压估计", pulse: "脉搏", adjustedPulse: "脉搏估计", cuffPulse: "袖带脉搏", estimateWarning: "此结果由手机摄像头实验性估算。请与袖带式血压计对照；勿用于诊断、用药或紧急医疗决定。",
     addCuffReference: "添加袖带血压参考值", cuffInstruction: "请在本次测量后立即使用经过验证的上臂式血压计测量血压和脉搏。",
@@ -52,7 +52,7 @@ const TRANSLATIONS = {
     noPulse: "未检测到可靠的脉搏波。请完全覆盖摄像头和闪光灯。", lowQuality: "信号质量过低。请保持指尖静止后重试。", unsuccessful: "测量未成功",
     completeFirst: "请先完成一次指尖测量。", invalidPressure: "收缩压应高于舒张压。", invalidPulse: "请输入 35 至 220 BPM 的袖带脉搏。", storageFailed: "此浏览器无法保存该读数。",
     saved: "配对读数已保存在本机。", savedMismatch: "已保存供查看，但摄像头与袖带脉搏差异过大，因此不会用于校准。", savedCount: "已保存 {count} 条", historyDetail: "摄像头 {bpm} BPM · 袖带 {cuffPulse} BPM · 置信度 {quality}%{estimate}",
-    cameraEstimate: " · 摄像头估计 {systolic}/{diastolic}", clearConfirm: "删除所有保存在本机的配对读数？此操作无法撤销。"
+    cameraEstimate: " · 摄像头估计 {systolic}/{diastolic}", clearConfirm: "删除所有保存在本机的配对读数？此操作无法撤销。", measurementHistory: "测量结果历史", clearMeasurementHistory: "清除测量结果", experimentalHistory: "摄像头生成的实验性结果，仅保存在本浏览器中。", measurementDetail: "脉搏 {bpm} BPM · 置信度 {quality}%", clearMeasurementConfirm: "删除所有摄像头测量结果？此操作无法撤销。"
   }
 };
 let currentLanguage = localStorage.getItem(LANGUAGE_KEY) || (navigator.language?.toLowerCase().startsWith("zh") ? "zh" : "en");
@@ -69,6 +69,7 @@ function applyLanguage() {
   document.querySelectorAll("[data-i18n]").forEach(element => { element.textContent = t(element.dataset.i18n); });
   document.querySelector("#languageButton").textContent = currentLanguage === "zh" ? "English" : "中文";
   renderHistory();
+  renderMeasurementHistory();
 }
 const video = document.querySelector("#camera");
 const canvas = document.querySelector("#sampleCanvas");
@@ -92,6 +93,9 @@ const saveMessage = document.querySelector("#saveMessage");
 const historySection = document.querySelector("#historySection");
 const historyList = document.querySelector("#historyList");
 const historyCount = document.querySelector("#historyCount");
+const measurementHistorySection = document.querySelector("#measurementHistorySection");
+const measurementHistoryList = document.querySelector("#measurementHistoryList");
+const measurementHistoryCount = document.querySelector("#measurementHistoryCount");
 const trendChart = document.querySelector("#trendChart");
 const installButton = document.querySelector("#installButton");
 const installStatus = document.querySelector("#installStatus");
@@ -111,6 +115,7 @@ button.addEventListener("click", () => stream ? stopMeasurement() : startMeasure
 referenceForm.addEventListener("submit", saveReferenceReading);
 document.querySelector("#exportButton").addEventListener("click", exportHistory);
 document.querySelector("#clearButton").addEventListener("click", clearHistory);
+document.querySelector("#clearMeasurementHistoryButton").addEventListener("click", clearMeasurementHistory);
 installButton.addEventListener("click", installApp);
 languageButton.addEventListener("click", () => {
   currentLanguage = currentLanguage === "en" ? "zh" : "en";
@@ -247,6 +252,7 @@ function finishMeasurement() {
     reading.bpEstimate = estimateBloodPressure(reading, history);
     reading.pulseEstimate = adjustPulse(reading, history);
     latestReading = reading;
+    window.BloodMeasureStore?.record("camera-measurement", { recordedAt: new Date().toISOString(), ppg: reading });
     heartRate.textContent = reading.pulseEstimate.bpm;
     pulseAdjustment.textContent = reading.pulseEstimate.referenceCount >= 3
       ? t("pulseAdjusted", { raw: Math.round(reading.bpm), count: reading.pulseEstimate.referenceCount })
@@ -260,6 +266,7 @@ function finishMeasurement() {
     setQualityDisplay(reading.quality);
     result.hidden = false;
     instruction.textContent = t("complete");
+    renderMeasurementHistory();
   } catch (error) {
     showMeasurementFailure(t(error.code || error.message));
   }
@@ -393,14 +400,16 @@ function saveReferenceReading(event) {
     return;
   }
   const history = loadHistory();
-  history.unshift({
+  const savedReading = {
     recordedAt: new Date().toISOString(),
     app: window.BLOOD_MEASURE_BUILD || null,
     cuff: { systolic, diastolic, pulse: cuffPulse },
     ppg: latestReading
-  });
+  };
+  history.unshift(savedReading);
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, 100)));
+    window.BloodMeasureStore?.record("cuff-comparison", savedReading);
   } catch (_) {
     saveMessage.textContent = t("storageFailed");
     return;
@@ -438,6 +447,28 @@ function renderHistory() {
   drawTrend(history);
 }
 
+function renderMeasurementHistory() {
+  const sessions = window.BloodMeasureStore?.getSessions().filter(item => item.type === "camera-measurement") || [];
+  measurementHistorySection.hidden = sessions.length === 0;
+  measurementHistoryCount.textContent = t("savedCount", { count: sessions.length });
+  measurementHistoryList.replaceChildren(...sessions.slice(0, 8).map(session => {
+    const reading = session.data?.ppg || {};
+    const row = document.createElement("div");
+    row.className = "history-item";
+    const pressure = document.createElement("strong");
+    pressure.textContent = reading.bpEstimate
+      ? `${reading.bpEstimate.systolic}/${reading.bpEstimate.diastolic} mmHg`
+      : "—";
+    const date = document.createElement("time");
+    date.dateTime = session.recordedAt;
+    date.textContent = new Date(session.recordedAt).toLocaleString(currentLanguage === "zh" ? "zh-CN" : undefined, { dateStyle: "medium", timeStyle: "short" });
+    const detail = document.createElement("small");
+    detail.textContent = t("measurementDetail", { bpm: Math.round(reading.pulseEstimate?.bpm ?? reading.bpm ?? 0) || "—", quality: Math.round((reading.quality || 0) * 100) });
+    row.append(pressure, date, detail);
+    return row;
+  }));
+}
+
 function exportHistory() {
   const history = loadHistory();
   if (!history.length) return;
@@ -457,7 +488,14 @@ function exportHistory() {
 function clearHistory() {
   if (!confirm(t("clearConfirm"))) return;
   localStorage.removeItem(STORAGE_KEY);
+  window.BloodMeasureStore?.removeType("cuff-comparison");
   renderHistory();
+}
+
+function clearMeasurementHistory() {
+  if (!confirm(t("clearMeasurementConfirm"))) return;
+  window.BloodMeasureStore?.removeType("camera-measurement");
+  renderMeasurementHistory();
 }
 
 function drawTrend(history) {

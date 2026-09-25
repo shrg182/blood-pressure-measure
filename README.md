@@ -4,7 +4,7 @@ A research prototype for processing fingertip camera signals on a mobile device.
 It extracts a photoplethysmography (PPG) waveform, estimates pulse rate, and
 shows an experimental blood-pressure comparison value.
 
-**Current version: 0.5.0** · Released 24 September 2026
+**Current version: 0.9.3** · Released 25 September 2026
 
 The deployed Git revision and update status are shown inside the application
 under **Usage → Version and updates**.
@@ -16,7 +16,17 @@ under **Usage → Version and updates**.
 - Expose a CLI for quick checkups
 - Analyze timestamped camera-frame RGB samples and reject unreliable recordings
 - Estimate pulse rate from a fingertip PPG waveform
-- Run a separate 60-second pulse analysis with beat-to-beat interval display
+- Open a bilingual dashboard that combines pulse sessions and cuff comparisons
+- Run a separate 60-second pulse analysis with beat-to-beat intervals and
+  artifact-filtered PRV metrics (RMSSD, SDNN, and pNN50)
+- Run a guided three-stage pulse-recovery session after activity
+- Estimate quiet respiratory rate experimentally from a 90-second PPG recording
+- Screen conservatively for an irregular pulse with inconclusive quality gating
+- Explore normalized beat morphology and repeatability in Waveform Lab
+- Log external pulse-oximeter SpO₂ readings manually or import compatible
+  standard Bluetooth Pulse Oximeter Service measurements
+- Attach an optional cellphone-camera PPG pulse reference to an external SpO₂
+  reading without estimating or adjusting oxygen saturation
   and cautious, non-diagnostic regularity wording
 
 ## Important limitation
@@ -34,6 +44,13 @@ measurement.
 ```bash
 python -m pip install -e .[dev]
 blood-measure 110 70
+```
+
+## Local port usage
+
+```bash
+blood-measure-web --host
+blood-measure-web --port 8001
 ```
 
 ## Mobile camera prototype

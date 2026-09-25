@@ -39,7 +39,10 @@ window.BloodMeasurePPG = (() => {
 
     const waveform = downsample(selected.centered.map(value => value / selected.scale), 150).map(value => Number(value.toFixed(4)));
     const confidence = Math.max(0, Math.min(1, .35 * Math.max(0, selected.correlation) + .65 * selected.prominence));
-    const beatIntervalsMs = detectBeatIntervals(selected.signal, timestamps, selected.bpm);
+    const beatData = detectBeats(selected.signal, timestamps, selected.bpm);
+    const beatIntervalsMs = beatData.intervals.map(seconds => Math.round(seconds * 1000));
+    const morphology = analyzeMorphology(selected.signal, timestamps, beatData.peaks);
+    const rhythm = assessRhythm(beatIntervalsMs, confidence, morphology);
     return {
       bpm: selected.bpm,
       quality: confidence,
@@ -47,7 +50,9 @@ window.BloodMeasurePPG = (() => {
       sampleRateHz: sampleRate,
       channel: selected.name,
       waveform,
-      beatIntervalsMs
+      beatIntervalsMs,
+      morphology,
+      rhythm
     };
   }
 
@@ -105,12 +110,12 @@ window.BloodMeasurePPG = (() => {
     return channelPreference * candidate.prominence * (.5 + .5 * Math.max(0, candidate.correlation));
   }
 
-  function detectBeatIntervals(signal, timestamps, bpm) {
+  function detectBeats(signal, timestamps, bpm) {
     const expected = 60 / bpm;
     const positive = intervalCandidate(signal, timestamps, expected);
     const inverted = intervalCandidate(signal.map(value => -value), timestamps, expected);
     const selected = positive.score >= inverted.score ? positive : inverted;
-    return selected.intervals.map(seconds => Math.round(seconds * 1000));
+    return { intervals: selected.intervals, peaks: selected.peaks };
   }
 
   function intervalCandidate(signal, timestamps, expected) {
@@ -124,9 +129,79 @@ window.BloodMeasurePPG = (() => {
     }
     const intervals = peaks.slice(1).map((index, offset) => timestamps[index] - timestamps[peaks[offset]])
       .filter(value => value >= expected * .55 && value <= expected * 1.55);
-    if (!intervals.length) return { intervals: [], score: 0 };
+    if (!intervals.length) return { intervals: [], peaks: [], score: 0 };
     const closeness = 1 / (1 + standardDeviation(intervals) / average(intervals));
-    return { intervals, score: intervals.length * closeness };
+    return { intervals, peaks, score: intervals.length * closeness };
+  }
+
+  function analyzeMorphology(signal, timestamps, peaks) {
+    const pointCount = 60, beats = [];
+    for (let index = 1; index < peaks.length - 1; index++) {
+      const start = Math.round((peaks[index - 1] + peaks[index]) / 2);
+      const end = Math.round((peaks[index] + peaks[index + 1]) / 2);
+      if (end - start < 5) continue;
+      const segment = signal.slice(start, end + 1);
+      const low = Math.min(...segment), range = Math.max(...segment) - low;
+      if (range <= .05) continue;
+      beats.push(resample(segment.map(value => (value - low) / range), pointCount));
+    }
+    if (beats.length < 3) return { beatCount: beats.length, averageBeat: [], consistency: 0, riseTimeFraction: null, widthHalfMaxFraction: null, reflectionIndex: null };
+    const template = Array.from({ length: pointCount }, (_, index) => median(beats.map(beat => beat[index])));
+    const correlations = beats.map(beat => pearson(beat, template)).filter(Number.isFinite);
+    const peakIndex = template.indexOf(Math.max(...template));
+    const aboveHalf = template.map((value, index) => value >= .5 ? index : -1).filter(index => index >= 0);
+    const secondary = localPeaks(template).filter(index => index >= peakIndex + 6).sort((left, right) => template[right] - template[left])[0];
+    return {
+      beatCount: beats.length,
+      averageBeat: template.map(value => Number(value.toFixed(4))),
+      consistency: Number(Math.max(0, Math.min(1, average(correlations))).toFixed(3)),
+      riseTimeFraction: Number((peakIndex / (pointCount - 1)).toFixed(3)),
+      widthHalfMaxFraction: aboveHalf.length ? Number(((aboveHalf.at(-1) - aboveHalf[0]) / (pointCount - 1)).toFixed(3)) : null,
+      reflectionIndex: secondary === undefined ? null : Number((template[secondary] / template[peakIndex]).toFixed(3))
+    };
+  }
+
+  function assessRhythm(intervals, quality, morphology) {
+    const usable = intervals.filter(value => value >= 300 && value <= 2000);
+    const artifactFraction = intervals.length ? 1 - usable.length / intervals.length : 1;
+    const reasons = [];
+    if (usable.length < 30) reasons.push("insufficientIntervals");
+    if (quality < .5) reasons.push("lowSignalQuality");
+    if (artifactFraction > .2) reasons.push("highArtifacts");
+    if (!Number.isFinite(morphology.consistency) || morphology.consistency < .55) reasons.push("lowBeatConsistency");
+    if (reasons.length) {
+      return { classification: "inconclusive", reasons, usableIntervals: usable.length, artifactFraction, irregularFraction: null, patternCount: 0 };
+    }
+    const center = median(usable);
+    const irregular = usable.filter(value => Math.abs(value - center) > Math.max(120, center * .18)).length;
+    let patternCount = 0;
+    for (let index = 0; index < usable.length - 1; index++) {
+      if (usable[index] < center * .82 && usable[index + 1] > center * 1.18) patternCount++;
+    }
+    const irregularFraction = irregular / usable.length;
+    const coefficientVariation = standardDeviation(usable) / average(usable);
+    const classification = irregularFraction >= .30 && coefficientVariation >= .12 || patternCount >= 3 ? "irregular" : "regular";
+    return { classification, reasons: [], usableIntervals: usable.length, artifactFraction: Number(artifactFraction.toFixed(3)), irregularFraction: Number(irregularFraction.toFixed(3)), patternCount };
+  }
+
+  function resample(values, length) {
+    return Array.from({ length }, (_, index) => {
+      const position = index * (values.length - 1) / (length - 1), left = Math.floor(position), right = Math.min(values.length - 1, left + 1), fraction = position - left;
+      return values[left] * (1 - fraction) + values[right] * fraction;
+    });
+  }
+
+  function pearson(left, right) {
+    const leftMean = average(left), rightMean = average(right);
+    let product = 0, leftEnergy = 0, rightEnergy = 0;
+    left.forEach((value, index) => { const a = value - leftMean, b = right[index] - rightMean; product += a * b; leftEnergy += a * a; rightEnergy += b * b; });
+    return product / Math.sqrt(leftEnergy * rightEnergy);
+  }
+
+  function localPeaks(values) {
+    const result = [];
+    for (let index = 1; index < values.length - 1; index++) if (values[index] > values[index - 1] && values[index] >= values[index + 1]) result.push(index);
+    return result;
   }
 
   function movingAverage(values, windowSize) {

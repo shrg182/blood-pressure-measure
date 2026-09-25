@@ -16,6 +16,7 @@
   <main>
     <header>
       <nav class="top-actions" aria-label="Page and appearance controls">
+        <a class="usage-link" href="dashboard.html" data-i18n="dashboard">Dashboard</a>
         <a class="usage-link" href="pulse.html" data-i18n="pulseAnalysis">Pulse</a>
         <a class="usage-link" href="usage.html" data-i18n="usage">Usage</a>
         <label class="theme-control">
@@ -77,6 +78,19 @@
       </form>
     </section>
 
+    <div class="meter-history-grid">
+    <section id="measurementHistorySection" class="history" hidden>
+      <div class="section-title">
+        <h2 data-i18n="measurementHistory">Measurement history</h2>
+        <span id="measurementHistoryCount"></span>
+      </div>
+      <div id="measurementHistoryList"></div>
+      <div class="history-actions">
+        <button id="clearMeasurementHistoryButton" class="text-button danger" type="button" data-i18n="clearMeasurementHistory">Clear measurements</button>
+      </div>
+      <p class="privacy-note" data-i18n="experimentalHistory">Camera-derived experimental results, stored only in this browser.</p>
+    </section>
+
     <section id="historySection" class="history" hidden>
       <div class="section-title">
         <h2 data-i18n="pairedReadings">Paired readings</h2>
@@ -93,12 +107,14 @@
       </div>
       <p class="privacy-note" data-i18n="privacyNote">Stored only in this browser. Clearing browser data will remove it.</p>
     </section>
+    </div>
 
     <button id="installButton" class="install-button" type="button" hidden data-i18n="installApp">Install app</button>
     <p id="installStatus" class="install-status" role="status"></p>
 
   </main>
   <script src="version.js"></script>
+  <script src="measurement-store.js"></script>
   <script src="ppg-analysis.js"></script>
   <script src="app.js"></script>
 </body>

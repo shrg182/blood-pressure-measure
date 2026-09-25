@@ -6,32 +6,34 @@ const THEME_KEY = "blood-measure-theme";
 const PULSE_STORAGE_KEY = "blood-measure-pulse-sessions-v1";
 const TRANSLATIONS = {
   en: {
-    meter: "Meter", usage: "Usage", appearance: "Appearance", classic: "Classic", ivory: "Ivory", sheets: "Sheets",
+    dashboard: "Dashboard", meter: "Meter", usage: "Usage", appearance: "Appearance", classic: "Classic", ivory: "Ivory", sheets: "Sheets",
     eyebrow: "60-SECOND RECORDING", title: "Pulse analysis", intro: "Explore pulse timing from the fingertip camera signal.",
     ready: "Ready", initialInstruction: "Rest your hand, cover the rear camera and flash, and remain still for one minute.", signalQuality: "Signal quality",
     start: "Start pulse analysis", stop: "Stop recording", holdStill: "Keep your fingertip and phone still for the full minute.", seconds: "{count} sec",
     adjustFinger: "Adjust finger", stabilizing: "Stabilizing", good: "Good", fair: "Fair", poor: "Poor",
     averagePulse: "Average camera pulse", regularity: "Pulse regularity", meanInterval: "Mean beat interval", detectedIntervals: "Intervals analyzed",
-    regular: "Regular within this recording", variable: "Variable within this recording", insufficient: "Not enough intervals",
+    regular: "Regular within this recording", repeatIrregular: "Irregular pattern — repeat needed", repeatedIrregular: "Irregular pattern repeated", irregular: "Irregular pulse detected", inconclusive: "Inconclusive — repeat recording", variable: "Variable within this recording", insufficient: "Not enough intervals", artifacts: "{used} of {total} intervals used after artifact filtering", rhythmDetail: "{usable} usable intervals · {artifacts}% artifacts · {patterns} short-long patterns",
+    screeningLabel: "IRREGULAR-PULSE SCREEN", regularExplanation: "No substantial irregularity was found in this high-quality recording.", regularAction: "Continue tracking under similar resting conditions.", repeatExplanation: "An irregular timing pattern appeared in this recording. A second clean recording is required before showing a repeated warning.", repeatAction: "Rest quietly, then repeat the full 60-second recording within 15 minutes.", repeatedExplanation: "An irregular timing pattern appeared in two high-quality recordings within 15 minutes.", repeatedAction: "This is not a diagnosis. Arrange ECG or clinical assessment, especially if the pattern persists. Seek urgent care for severe symptoms.", inconclusiveExplanation: "The rhythm screen could not interpret this recording: {reasons}.", inconclusiveAction: "Reposition your finger, remain still, and repeat the recording.", reasonInsufficientIntervals: "too few usable intervals", reasonLowSignalQuality: "low signal confidence", reasonHighArtifacts: "too many artifacts", reasonLowBeatConsistency: "inconsistent pulse shapes",
     quality: "{quality}% signal confidence · {channel} channel", history: "Pulse sessions", savedCount: "{count} saved",
     historyDetail: "{bpm} BPM · {regularity} · {count} intervals", exportJson: "Export JSON", clearHistory: "Clear history", privacy: "Stored only in this browser.",
-    warning: "Experimental pulse-timing screen only. It cannot diagnose atrial fibrillation or another heart condition. Seek medical assessment for symptoms or persistent concerns.",
+    warning: "Experimental pulse-rate variability and irregular-pulse screen only. It is not ECG-derived HRV or an ECG and cannot diagnose atrial fibrillation or another heart condition. Repeat inconclusive or irregular results and seek medical assessment for symptoms or persistent concerns.",
     cameraSecure: "Camera access requires a supported browser and a secure HTTPS connection.", cameraDenied: "Camera permission was not granted.", cameraFailed: "The rear camera could not be started.",
     notEnoughFrames: "Not enough camera frames. Try again.", tooShort: "The recording was too short. Try again.", exposure: "Adjust your finger to avoid a dark or overexposed image.",
     noPulse: "No reliable pulse was detected. Cover the camera and flash completely.", lowQuality: "Signal quality was too low. Keep your fingertip still and try again.",
     stopped: "Recording stopped. Start again when ready.", unsuccessful: "Pulse analysis unsuccessful", clearConfirm: "Delete all saved pulse sessions? This cannot be undone."
   },
   zh: {
-    meter: "测量", usage: "使用说明", appearance: "外观", classic: "经典", ivory: "象牙白", sheets: "表格",
+    dashboard: "仪表板", meter: "测量", usage: "使用说明", appearance: "外观", classic: "经典", ivory: "象牙白", sheets: "表格",
     eyebrow: "60 秒记录", title: "脉搏分析", intro: "通过指尖摄像头信号查看脉搏时间变化。",
     ready: "准备就绪", initialInstruction: "请支撑好手部，完全覆盖后置摄像头和闪光灯，并保持静止一分钟。", signalQuality: "信号质量",
     start: "开始脉搏分析", stop: "停止记录", holdStill: "请保持指尖和手机静止整整一分钟。", seconds: "{count} 秒",
     adjustFinger: "调整手指", stabilizing: "信号稳定中", good: "良好", fair: "一般", poor: "较差",
     averagePulse: "摄像头平均脉搏", regularity: "脉搏规律性", meanInterval: "平均搏动间隔", detectedIntervals: "已分析间隔",
-    regular: "本次记录内较规律", variable: "本次记录内有变化", insufficient: "间隔数量不足",
+    regular: "本次记录内较规律", repeatIrregular: "出现不规则模式，需要复测", repeatedIrregular: "不规则模式重复出现", irregular: "检测到脉搏不规则", inconclusive: "无法确定，请重新记录", variable: "本次记录内有变化", insufficient: "间隔数量不足", artifacts: "伪影过滤后使用了 {total} 个间隔中的 {used} 个", rhythmDetail: "{usable} 个可用间隔 · 伪影 {artifacts}% · {patterns} 个短-长间期模式",
+    screeningLabel: "脉搏不规则筛查", regularExplanation: "本次高质量记录中未发现明显的不规则性。", regularAction: "请在相似的静息条件下继续跟踪。", repeatExplanation: "本次记录出现不规则时间模式。需要第二次清晰记录后才会显示重复警告。", repeatAction: "请安静休息，并在 15 分钟内重复完整的 60 秒记录。", repeatedExplanation: "15 分钟内的两次高质量记录均出现不规则时间模式。", repeatedAction: "这不是诊断。如该模式持续，请安排心电图或临床评估；如出现严重症状，请立即就医。", inconclusiveExplanation: "本次记录无法用于心律筛查：{reasons}。", inconclusiveAction: "请重新放置手指、保持静止并再次记录。", reasonInsufficientIntervals: "可用间期过少", reasonLowSignalQuality: "信号置信度过低", reasonHighArtifacts: "伪影过多", reasonLowBeatConsistency: "脉搏形态不一致",
     quality: "信号置信度 {quality}% · {channel} 通道", history: "脉搏记录", savedCount: "已保存 {count} 条",
     historyDetail: "{bpm} BPM · {regularity} · {count} 个间隔", exportJson: "导出 JSON", clearHistory: "清除历史", privacy: "数据仅保存在本浏览器中。",
-    warning: "这只是实验性脉搏时间筛查，不能诊断房颤或其他心脏疾病。如有症状或持续担忧，请接受医疗评估。",
+    warning: "这只是实验性脉率变异性和脉搏不规则筛查，并非心电图，不能诊断房颤或其他心脏疾病。如结果无法确定或提示不规则，请重复测量；如有症状或持续担忧，请接受医疗评估。",
     cameraSecure: "摄像头访问需要受支持的浏览器和安全的 HTTPS 连接。", cameraDenied: "未授予摄像头权限。", cameraFailed: "无法启动后置摄像头。",
     notEnoughFrames: "摄像头帧数不足，请重试。", tooShort: "记录时间过短，请重试。", exposure: "请调整手指，避免画面过暗或过度曝光。",
     noPulse: "未检测到可靠的脉搏波。请完全覆盖摄像头和闪光灯。", lowQuality: "信号质量过低。请保持指尖静止后重试。",
@@ -142,10 +144,12 @@ function finishRecording() {
   try {
     const reading = window.BloodMeasurePPG.analyze(samples);
     const intervals = reading.beatIntervalsMs;
+    const prv = calculatePrv(intervals);
     const meanInterval = intervals.length ? average(intervals) : 0;
     const variability = intervals.length > 1 ? standardDeviation(intervals) / meanInterval : Infinity;
-    const regularityKey = intervals.length < 10 ? "insufficient" : variability <= .10 ? "regular" : "variable";
-    const session = { recordedAt: new Date().toISOString(), app: window.BLOOD_MEASURE_BUILD || null, ...reading, meanIntervalMs: Math.round(meanInterval), variability, regularity: regularityKey };
+    const screening = buildScreening(reading, loadHistory());
+    const regularityKey = screening.status;
+    const session = { recordedAt: new Date().toISOString(), app: window.BLOOD_MEASURE_BUILD || null, ...reading, meanIntervalMs: Math.round(meanInterval), variability, regularity: regularityKey, prv, screening };
     saveSession(session);
     showResult(session);
     instruction.textContent = t("ready");
@@ -159,8 +163,14 @@ function showResult(session) {
   document.querySelector("#pulseResultTitle").textContent = t("averagePulse");
   document.querySelector("#pulseBpm").textContent = Math.round(session.bpm);
   document.querySelector("#regularityValue").textContent = t(session.regularity);
+  renderRhythmScreening(session.screening || buildScreening(session, []));
   document.querySelector("#meanIntervalValue").textContent = session.meanIntervalMs || "—";
   document.querySelector("#intervalCount").textContent = session.beatIntervalsMs.length;
+  document.querySelector("#rmssdValue").textContent = session.prv?.rmssdMs ?? "—";
+  document.querySelector("#sdnnValue").textContent = session.prv?.sdnnMs ?? "—";
+  document.querySelector("#pnn50Value").textContent = session.prv?.pnn50Percent ?? "—";
+  document.querySelector("#artifactSummary").textContent = t("artifacts", { used: session.prv?.usedIntervals ?? 0, total: session.beatIntervalsMs.length });
+  document.querySelector("#rhythmSummary").textContent = session.rhythm ? t("rhythmDetail", { usable: session.rhythm.usableIntervals, artifacts: Math.round(session.rhythm.artifactFraction * 100), patterns: session.rhythm.patternCount }) : "";
   document.querySelector("#pulseQuality").textContent = t("quality", { quality: Math.round(session.quality * 100), channel: session.channel });
   drawIntervals(session.beatIntervalsMs);
   result.hidden = false;
@@ -176,6 +186,58 @@ function showFailure(message) {
   document.querySelector("#regularityValue").textContent = message;
   document.querySelector("#meanIntervalValue").textContent = "—";
   document.querySelector("#intervalCount").textContent = "—";
+  document.querySelector("#rmssdValue").textContent = "—";
+  document.querySelector("#sdnnValue").textContent = "—";
+  document.querySelector("#pnn50Value").textContent = "—";
+  document.querySelector("#artifactSummary").textContent = "";
+  document.querySelector("#rhythmSummary").textContent = "";
+  document.querySelector("#rhythmCard").hidden = true;
+}
+
+function buildScreening(reading, history) {
+  const rhythm = reading.rhythm;
+  if (!rhythm || rhythm.classification === "inconclusive") {
+    return { status: "inconclusive", reasons: rhythm?.reasons || ["insufficientIntervals"] };
+  }
+  if (rhythm.classification === "regular") return { status: "regular", reasons: [] };
+  const cutoff = Date.now() - 15 * 60 * 1000;
+  const priorIrregular = history.some(session => new Date(session.recordedAt).getTime() >= cutoff && session.rhythm?.classification === "irregular" && session.quality >= .5);
+  return { status: priorIrregular ? "repeatedIrregular" : "repeatIrregular", reasons: [] };
+}
+
+function renderRhythmScreening(screening) {
+  const card = document.querySelector("#rhythmCard");
+  card.hidden = false;
+  card.dataset.status = screening.status;
+  document.querySelector("#rhythmTitle").textContent = t(screening.status);
+  if (screening.status === "regular") {
+    document.querySelector("#rhythmExplanation").textContent = t("regularExplanation");
+    document.querySelector("#rhythmAction").textContent = t("regularAction");
+  } else if (screening.status === "repeatIrregular") {
+    document.querySelector("#rhythmExplanation").textContent = t("repeatExplanation");
+    document.querySelector("#rhythmAction").textContent = t("repeatAction");
+  } else if (screening.status === "repeatedIrregular") {
+    document.querySelector("#rhythmExplanation").textContent = t("repeatedExplanation");
+    document.querySelector("#rhythmAction").textContent = t("repeatedAction");
+  } else {
+    const reasons = (screening.reasons || []).map(reason => t(`reason${reason[0].toUpperCase()}${reason.slice(1)}`)).join(", ");
+    document.querySelector("#rhythmExplanation").textContent = t("inconclusiveExplanation", { reasons });
+    document.querySelector("#rhythmAction").textContent = t("inconclusiveAction");
+  }
+}
+
+function calculatePrv(intervals) {
+  if (intervals.length < 3) return { rmssdMs: null, sdnnMs: null, pnn50Percent: null, usedIntervals: 0 };
+  const center = median(intervals);
+  const tolerance = Math.max(200, center * .25);
+  const clean = intervals.filter(value => value >= 300 && value <= 2000 && Math.abs(value - center) <= tolerance);
+  if (clean.length < 3) return { rmssdMs: null, sdnnMs: null, pnn50Percent: null, usedIntervals: clean.length };
+  const differences = clean.slice(1).map((value, index) => value - clean[index]);
+  const rmssd = Math.sqrt(average(differences.map(value => value * value)));
+  const mean = average(clean);
+  const sdnn = Math.sqrt(clean.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (clean.length - 1));
+  const pnn50 = differences.filter(value => Math.abs(value) > 50).length / differences.length * 100;
+  return { rmssdMs: Math.round(rmssd), sdnnMs: Math.round(sdnn), pnn50Percent: Math.round(pnn50), usedIntervals: clean.length };
 }
 
 function stopRecording() {
@@ -247,6 +309,7 @@ function saveSession(session) {
   const history = loadHistory();
   history.unshift(session);
   localStorage.setItem(PULSE_STORAGE_KEY, JSON.stringify(history.slice(0, 30)));
+  window.BloodMeasureStore?.record("pulse-analysis", session);
   renderHistory();
 }
 
@@ -276,11 +339,13 @@ function exportHistory() {
 function clearHistory() {
   if (!confirm(t("clearConfirm"))) return;
   localStorage.removeItem(PULSE_STORAGE_KEY);
+  window.BloodMeasureStore?.removeType("pulse-analysis");
   renderHistory();
 }
 
 function average(values) { return values.reduce((sum, value) => sum + value, 0) / values.length; }
 function standardDeviation(values) { const mean = average(values); return Math.sqrt(average(values.map(value => (value - mean) ** 2))); }
+function median(values) { const sorted = [...values].sort((left, right) => left - right); return sorted[Math.floor(sorted.length / 2)]; }
 
 if ("serviceWorker" in navigator && window.isSecureContext) navigator.serviceWorker.register("service-worker.js").catch(() => {});
 applyLanguage();

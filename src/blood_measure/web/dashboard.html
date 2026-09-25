@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#8f2537">
+  <title>Dashboard · Blood Measure</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.dataset.theme = localStorage.getItem("blood-measure-theme") || "classic";</script>
+</head>
+<body>
+  <main class="dashboard-page">
+    <header>
+      <nav class="top-actions" aria-label="Page and appearance controls">
+        <a class="usage-link" href="index.html" data-i18n="meter">Meter</a>
+        <a class="usage-link" href="pulse.html" data-i18n="pulse">Pulse</a>
+        <a class="usage-link" href="usage.html" data-i18n="usage">Usage</a>
+        <label class="theme-control"><span class="visually-hidden" data-i18n="appearance">Appearance</span>
+          <select id="themeSelect" aria-label="Appearance"><option value="classic" data-i18n="classic">Classic</option><option value="ivory" data-i18n="ivory">Ivory</option><option value="sheets" data-i18n="sheets">Sheets</option></select>
+        </label>
+        <button id="languageButton" class="language-button" type="button">中文</button>
+      </nav>
+      <p class="eyebrow" data-i18n="eyebrow">FINGERTIP HEALTH</p>
+      <h1 data-i18n="title">Health dashboard</h1>
+      <p class="subtitle" data-i18n="intro">Your fingertip PPG sessions and cuff comparisons in one place.</p>
+    </header>
+
+    <section class="dashboard-summary" aria-label="Saved measurement summary">
+      <article><strong id="totalCount">0</strong><span data-i18n="allSessions">All sessions</span></article>
+      <article><strong id="pulseCount">0</strong><span data-i18n="pulseSessions">Pulse sessions</span></article>
+      <article><strong id="cuffCount">0</strong><span data-i18n="cuffPairs">Cuff pairs</span></article>
+    </section>
+
+    <section class="feature-grid" aria-label="Measurement features">
+      <a class="feature-card" href="index.html"><span class="feature-icon" aria-hidden="true">♥</span><strong data-i18n="quickMeter">Quick meter</strong><small data-i18n="quickMeterText">15-second pulse recording with an experimental cuff comparison.</small></a>
+      <a class="feature-card" href="pulse.html"><span class="feature-icon" aria-hidden="true">⌁</span><strong data-i18n="pulseAnalysis">Pulse analysis</strong><small data-i18n="pulseAnalysisText">60-second beat intervals, variability, and signal quality.</small></a>
+      <a class="feature-card" href="recovery.html"><span class="feature-icon" aria-hidden="true">↗</span><strong data-i18n="recovery">Recovery test</strong><small data-i18n="recoveryText">Guided pulse readings immediately after activity and at one and two minutes.</small></a>
+      <a class="feature-card" href="breathing.html"><span class="feature-icon" aria-hidden="true">≈</span><strong data-i18n="breathing">Breathing rate</strong><small data-i18n="breathingText">Experimental 90-second estimate from pulse-signal modulation.</small></a>
+      <a class="feature-card" href="waveform.html"><span class="feature-icon" aria-hidden="true">⌇</span><strong data-i18n="waveform">Waveform Lab</strong><small data-i18n="waveformText">Normalized pulse shape, beat alignment, and repeatability research view.</small></a>
+      <a class="feature-card" href="oxygen.html"><span class="feature-icon" aria-hidden="true">O₂</span><strong data-i18n="oxygen">Oxygen saturation</strong><small data-i18n="oxygenText">Log hospital or external pulse-oximeter readings, manually or by compatible Bluetooth.</small></a>
+    </section>
+
+    <section id="recentSection" class="history" hidden>
+      <div class="section-title"><h2 data-i18n="recent">Recent activity</h2><span id="latestDate"></span></div>
+      <div id="recentList"></div>
+      <p class="privacy-note" data-i18n="privacy">Data stays in this browser unless you export it.</p>
+    </section>
+
+    <section class="guide-card caution-card dashboard-caution">
+      <h2 data-i18n="safetyTitle">Measurement limits</h2>
+      <p data-i18n="safety">Camera PPG is experimental and does not directly measure blood pressure, oxygen saturation, or diagnose a heart condition.</p>
+    </section>
+  </main>
+  <script src="version.js"></script>
+  <script src="measurement-store.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
