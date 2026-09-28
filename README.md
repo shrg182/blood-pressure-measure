@@ -4,7 +4,7 @@ A research prototype for processing fingertip camera signals on a mobile device.
 It extracts a photoplethysmography (PPG) waveform, estimates pulse rate, and
 shows an experimental blood-pressure comparison value.
 
-**Current version: 0.9.3** · Released 25 September 2026
+**Current version: 0.9.4** · Released 28 September 2026
 
 The deployed Git revision and update status are shown inside the application
 under **Usage → Version and updates**.

@@ -29,6 +29,7 @@ def test_mobile_web_assets_are_packaged():
         "ppg-analysis.js",
         "usage.js",
         "version.js",
+        "pwa-bootstrap.js",
         "manifest.webmanifest",
         "service-worker.js",
         "icon.svg",
@@ -56,7 +57,7 @@ def test_usage_page_reports_running_version_and_can_check_for_updates():
 
     assert 'id="versionDetails"' in usage
     assert 'id="checkUpdateButton"' in usage
-    assert 'version: "0.9.3"' in version
+    assert 'version: "0.9.4"' in version
     assert "registration.update()" in javascript
     assert 'format: "blood-measure-v2"' in app
     assert "window.BLOOD_MEASURE_BUILD" in app
@@ -66,8 +67,8 @@ def test_readme_version_matches_web_application():
     readme = Path(__file__).parents[1].joinpath("README.md").read_text()
     version = files("blood_measure").joinpath("web", "version.js").read_text()
 
-    assert "Current version: 0.9.3" in readme
-    assert 'version: "0.9.3"' in version
+    assert "Current version: 0.9.4" in readme
+    assert 'version: "0.9.4"' in version
 
 
 def test_dashboard_aggregates_versioned_measurement_sessions():
@@ -235,6 +236,11 @@ def test_android_install_has_raster_icons_and_result_feedback():
     assert '"type": "image/svg+xml"' not in manifest
     assert 'choice.outcome === "accepted"' in javascript
     assert 'installStatus.textContent = t("installComplete")' in javascript
+    for page in ("dashboard.html", "index.html", "pulse.html", "usage.html", "recovery.html", "breathing.html", "waveform.html", "oxygen.html"):
+        html = web.joinpath(page).read_text()
+        assert 'rel="icon" href="icon-192.png?v=0.9.4"' in html
+        assert 'rel="apple-touch-icon" href="icon-192.png?v=0.9.4"' in html
+        assert 'src="pwa-bootstrap.js"' in html
 
 
 def test_camera_permission_failure_gives_xiaomi_recovery_steps():

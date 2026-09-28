@@ -10,19 +10,19 @@
   "theme_color": "#8f2537",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icon-192.png?v=0.9.4",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon-512.png?v=0.9.4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-maskable-512.png",
+      "src": "icon-maskable-512.png?v=0.9.4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -33,25 +33,25 @@
       "name": "Quick Meter",
       "short_name": "Meter",
       "url": "index.html",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "icon-192.png?v=0.9.4", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Pulse Analysis",
       "short_name": "Pulse",
       "url": "pulse.html",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "icon-192.png?v=0.9.4", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Pulse Recovery",
       "short_name": "Recovery",
       "url": "recovery.html",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "icon-192.png?v=0.9.4", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Breathing Rate",
       "short_name": "Breathing",
       "url": "breathing.html",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "icon-192.png?v=0.9.4", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
