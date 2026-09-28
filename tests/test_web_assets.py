@@ -22,6 +22,7 @@ def test_mobile_web_assets_are_packaged():
         "recovery.js",
         "breathing.js",
         "fingertip-recorder.js",
+        "camera-support.js",
         "respiration-analysis.js",
         "waveform.js",
         "oxygen.js",
@@ -231,8 +232,19 @@ def test_android_install_has_raster_icons_and_result_feedback():
 
     assert '"sizes": "192x192"' in manifest
     assert manifest.count('"sizes": "512x512"') >= 2
+    assert '"type": "image/svg+xml"' not in manifest
     assert 'choice.outcome === "accepted"' in javascript
     assert 'installStatus.textContent = t("installComplete")' in javascript
+
+
+def test_camera_permission_failure_gives_xiaomi_recovery_steps():
+    web = files("blood_measure").joinpath("web")
+    support = web.joinpath("camera-support.js").read_text()
+    assert "Xiaomi/HyperOS" in support
+    assert "Manage apps" in support
+    assert "Site settings > Camera" in support
+    for page in ("index.html", "pulse.html", "recovery.html", "breathing.html", "waveform.html", "oxygen.html"):
+        assert 'src="camera-support.js"' in web.joinpath(page).read_text()
 
 
 def test_usage_page_keeps_meter_page_concise():

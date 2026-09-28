@@ -170,7 +170,7 @@ async function startMeasurement() {
     scheduleCapture();
   } catch (error) {
     releaseCamera();
-    showError(error.name === "NotAllowedError" ? t("cameraDenied") : t("cameraFailed"));
+    showError(window.CameraSupport.errorMessage(error, currentLanguage));
   } finally {
     button.disabled = false;
   }
