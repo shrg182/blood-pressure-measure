@@ -1,6 +1,6 @@
 # Handoff: 指尖脉搏 · Fingertip Pulse Lab
 
-Last updated: 2026-10-02
+Last updated: 2026-10-11
 
 ## Purpose
 
@@ -62,14 +62,24 @@ browsers will not grant camera access to an ordinary HTTP origin.
 
 ## Latest verification
 
-- Full automated suite: `39 passed` on 2026-10-02 at revision
-  `ea23c310e22402d6ed353cc888a73a4ee78ae9a8` plus this documentation file.
+- Finding 1 (duplicate cuff/pulse dashboard records) is confirmed and fixed by
+  incremental, retryable reconciliation. Legacy histories, exports, calibration,
+  and dual-writing are preserved; migration never deletes legacy data.
+- Dashboard reports incomplete migration in English and Chinese.
+- Full automated suite: `40 passed` on 2026-10-11, including 21 executable
+  JavaScript regression cases. All 16 web JavaScript syntax checks, Python
+  compilation, and diff whitespace checks passed.
+- Real Chrome dashboard checks remain unverified: two isolated headless runs
+  timed out after 45 seconds. The runner is `tests/check_dashboard_browser.py`.
+- Offline cache version advanced to v25 for the dashboard fix. The deployed
+  Git revision identifies this update; the app version remains 0.9.4.
 - Real-phone camera and paired-cuff verification remains outstanding.
+- See `docs/reviews_and_suggestions/duplicate_records_fix.md` for migration
+  details and limitations. Other review findings are not independently verified.
 
-## Next three tasks
+## Next tasks
 
-1. Run the full automated suite on the current release and record fresh results.
+1. Resolve the local headless Chrome timeout and run the dashboard browser checks.
 2. Perform a real-phone smoke test covering permission, good and poor signals,
    three cuff pairs, history, export, reload, installation, and offline use.
-3. Convert device findings into a prioritized fix list before adding another
-   measurement feature.
+3. Review remaining findings separately before expanding the scope of fixes.

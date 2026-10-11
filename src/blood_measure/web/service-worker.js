@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "blood-measure-v24";
+const CACHE_NAME = "blood-measure-v25";
 const APP_SHELL = ["./", "dashboard.html", "index.html", "pulse.html", "recovery.html", "breathing.html", "waveform.html", "oxygen.html", "usage.html", "styles.css", "dashboard.js", "app.js", "pulse.js", "recovery.js", "breathing.js", "waveform.js", "oxygen.js", "usage.js", "measurement-store.js", "ppg-analysis.js", "respiration-analysis.js", "camera-support.js", "fingertip-recorder.js", "pwa-bootstrap.js", "version.js", "manifest.webmanifest", "icon.svg", "icon-maskable.svg", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 self.addEventListener("install", event => {
