@@ -54,16 +54,26 @@
 
     <button id="measureButton" type="button" data-i18n="startMeasurement">Start measurement</button>
 
-    <section id="result" class="result" hidden>
-      <p id="resultTitle" data-i18n="experimentalEstimate">Experimental blood pressure estimate</p>
+    <section id="result" class="result measurement-result" aria-labelledby="resultTitle" hidden>
+      <h2 id="resultTitle" data-i18n="experimentalEstimate">Camera PPG estimate · Experimental</h2>
       <div id="pressureValue" class="pressure-value">
         <strong id="estimatedSystolic">—</strong><b>/</b><strong id="estimatedDiastolic">—</strong>
         <span>mmHg</span>
       </div>
-      <div id="pulseValue" class="pulse-value"><span data-i18n="adjustedPulse">Pulse estimate</span> <strong id="heartRate">—</strong> <span>BPM</span></div>
-      <small id="pulseAdjustment"></small>
-      <small id="resultQuality"></small>
-      <p class="estimate-warning" data-i18n="estimateWarning">Camera-derived experimental estimate. Compare it with your cuff; do not use it for diagnosis, medication, or emergency decisions.</p>
+      <aside id="cameraCaution" class="estimate-warning" aria-label="Caution" data-i18n-label="caution">
+        <p data-i18n="estimateWarning">Confirm with a validated upper-arm cuff. This camera estimate is not a medical measurement.</p>
+      </aside>
+      <div class="camera-metrics">
+        <div class="camera-pulse">
+          <div id="pulseValue" class="pulse-value"><span data-i18n="adjustedPulse">Pulse estimate</span> <strong id="heartRate">—</strong> <span>BPM</span></div>
+          <small id="pulseAdjustment"></small>
+        </div>
+        <div class="camera-quality">
+          <h3 data-i18n="signalQuality">Signal quality</h3>
+          <small id="resultQuality"></small>
+        </div>
+      </div>
+      <button id="enterCuffButton" class="text-button" type="button" aria-controls="referenceForm" data-i18n="enterCuffReading">Enter cuff reading</button>
 
       <form id="referenceForm" class="reference-form">
         <h2 data-i18n="addCuffReference">Add a cuff reference</h2>
@@ -78,6 +88,13 @@
         <button class="secondary" type="submit" data-i18n="savePairedReading">Save paired reading</button>
         <p id="saveMessage" class="save-message" role="status"></p>
       </form>
+      <section id="savedCuffCard" class="saved-cuff-card" aria-labelledby="savedCuffTitle" hidden>
+        <h2 id="savedCuffTitle" data-i18n="cuffReading">Cuff reading</h2>
+        <p class="saved-cuff-pressure"><strong id="savedCuffPressure"></strong> <span>mmHg</span></p>
+        <p id="savedCuffPulse"></p>
+        <p><span data-i18n="savedAt">Saved at</span>: <time id="savedCuffTime"></time></p>
+        <p data-i18n="cuffSource">Source: User-entered cuff reading</p>
+      </section>
     </section>
 
     <div class="meter-history-grid">

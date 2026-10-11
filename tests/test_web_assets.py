@@ -276,8 +276,8 @@ def test_interface_labels_experimental_pressure_estimate():
     html = web.joinpath("index.html").read_text()
     javascript = web.joinpath("app.js").read_text()
 
-    assert "Experimental blood pressure estimate" in html
-    assert "do not use it for diagnosis" in html
+    assert "Camera PPG estimate · Experimental" in html
+    assert "Confirm with a validated upper-arm cuff. This camera estimate is not a medical measurement." in html
     assert "estimateBloodPressure" in javascript
     assert "population-heuristic-v1" in javascript
 

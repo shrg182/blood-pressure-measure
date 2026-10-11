@@ -285,3 +285,34 @@ details p { margin-bottom: 0; }
   .meter-history-grid { grid-template-columns: 1fr; }
   .oxygen-primary-fields { grid-template-columns: 1fr; }
 }
+
+/* Keep camera estimates, pulse quality, and manually entered cuff data distinct. */
+.measurement-result { text-align: left; }
+.measurement-result h2 { margin: 0; color: var(--ink); font-size: 1.05rem; line-height: 1.5; }
+.measurement-result h3 { margin: 0; font-size: .85rem; color: var(--ink); }
+.measurement-result .pressure-value { justify-content: flex-start; flex-wrap: wrap; }
+.measurement-result .pressure-value strong { font-size: clamp(2rem, 9vw, 2.85rem); }
+.measurement-result strong,
+:root[data-theme="sheets"] .measurement-result strong { color: var(--ink); }
+.measurement-result span, .measurement-result small, .measurement-result p { color: var(--ink); }
+.measurement-result .estimate-warning { margin: 12px 0 18px; padding: 14px; border: 1px solid var(--line); border-left: 4px solid var(--accent-deep); border-radius: 6px; background: var(--page); }
+.measurement-result .estimate-warning p { margin: 0; font-size: .9rem; line-height: 1.55; }
+.camera-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 14px 0; border-block: 1px solid var(--line); }
+.camera-metrics > div { min-width: 0; }
+.camera-metrics small { line-height: 1.55; }
+.measurement-result #enterCuffButton { min-height: 44px; margin-top: 16px; }
+.measurement-result :is(button, input):focus-visible { outline: 3px solid var(--accent-deep); outline-offset: 3px; }
+.measurement-result .reference-form { border-color: var(--line); }
+.saved-cuff-card { margin-top: 20px; padding: 16px; border: 2px solid var(--line); border-radius: var(--control-radius); background: var(--surface-strong); }
+.saved-cuff-card p { margin-top: 8px; line-height: 1.5; }
+.saved-cuff-pressure strong { font-size: 1.8rem; }
+.measurement-result.error .camera-pulse,
+.measurement-result.error .camera-quality h3,
+.measurement-result.error #enterCuffButton,
+.measurement-result.error .saved-cuff-card { display: none; }
+.measurement-result.error .camera-metrics { display: block; border: 0; }
+@media (max-width: 480px) {
+  .camera-metrics { grid-template-columns: 1fr; }
+  .camera-quality { padding-top: 12px; border-top: 1px solid var(--line); }
+  .measurement-result { padding: 16px; }
+}

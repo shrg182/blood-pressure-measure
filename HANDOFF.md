@@ -1,85 +1,164 @@
-# Handoff: 指尖脉搏 · Fingertip Pulse Lab
+# Handoff: Blood Measure / Fingertip Pulse Lab
 
-Last updated: 2026-10-11
-
-## Purpose
-
-Research prototype for recording fingertip photoplethysmography (PPG) with a
-phone camera, estimating pulse-related signals, and comparing experimental
-values with readings from validated external devices.
-
-## Safety boundary
-
-A phone camera does not directly measure blood pressure or clinical oxygen
-saturation. Camera-derived pressure values are unvalidated comparison values.
-Do not use them for diagnosis, medication decisions, emergencies, or other
-health decisions. Confirm relevant readings with a validated upper-arm cuff or
-a qualified clinician.
+Last updated: 2026-10-11 (America/Detroit)
 
 ## Current state
 
-- Version 0.9.4 was released on 2026-09-28 at revision
-  `ea23c310e22402d6ed353cc888a73a4ee78ae9a8`.
-- The application supports camera PPG, pulse estimation, quality rejection,
-  cuff comparisons, bounded personal offsets, PRV, recovery, experimental
-  respiration, cautious irregularity screening, waveform research, external
-  SpO2 logging, bilingual UI, and offline installation.
-- Automated verification recorded in `IMPLEMENTATION_PROGRESS.md` predates the
-  current release and therefore must be refreshed.
-- The visible product name is **指尖脉搏 · Fingertip Pulse Lab**. The repository,
-  package, and deployed URL remain unchanged.
+Repository: `https://github.com/shrg182/blood-pressure-measure`, branch `main`.
 
-## Run and verify
+- Latest committed and published revision: `1259df062cde1bc41c08e73bac5aad33596b3c47`
+  — `Fix duplicate dashboard cuff and pulse records with safe reconciliation`.
+- GitHub Pages deployment succeeded. Live `version.js` reported `1259df0`, and
+  the deployed store, dashboard HTML/JS, and service worker matched local files.
+- Live site: <https://shrg182.github.io/blood-pressure-measure/>.
+- App version remains `0.9.4`; offline cache is `blood-measure-v25`.
+- The measurement-result UI improvements described below are implemented locally,
+  tested, and **not yet committed or published**. This handoff update is also local.
+
+## Scope and safety constraints
+
+This is a research prototype for camera fingertip PPG and comparisons with
+external cuff readings. Camera-derived blood-pressure estimates are experimental,
+not medical measurements. Preserve existing measurement, storage, export, and
+calibration behavior. Do not add risk classifications or emergency guidance based
+on camera estimates. Do not change medical or signal-processing logic as part of
+these UI/storage tasks.
+
+Only Finding 1 in
+`docs/reviews_and_suggestions/blood_pressure_dashboard_review_and_upgrade_plan.md`
+has been independently verified. Findings 2–7 remain unverified and require separate
+review. The actual directory is `reviews_and_suggestions` (plural).
+
+## Published dashboard duplicate-record fix
+
+Finding 1 was reproduced: one cuff pair and one pulse session were counted as
+four records because legacy and consolidated copies had different ID prefixes.
+
+- `app.js` writes cuff pairs to `blood-measure-paired-readings-v1`, then calls
+  consolidated `record("cuff-comparison", ...)`.
+- `pulse.js` writes pulse sessions to `blood-measure-pulse-sessions-v1`, then calls
+  `record("pulse-analysis", ...)`.
+- Consolidated key: `blood-measure-sessions-v1`.
+- The store now reconciles legacy entries incrementally on reads. It collapses
+  matching normalized types and complete JSON payloads, independent of object
+  key order. Conflicting payloads remain separate with disambiguated IDs.
+- Migration copies missing entries, verifies the serialized destination by
+  reading it back, and retains legacy sources. There is no one-time completion
+  flag or migration retention cap. Later writes from old tabs can be imported.
+- Failed reads/writes or verification report incomplete migration; dashboard
+  messaging is localized in English and Simplified Chinese.
+- Dual-writing remains intentional: legacy stores still support feature history,
+  exports, and cuff calibration. Do not remove these stores or redirect readers
+  without separately verifying those behaviors and their retention semantics.
+- Explicit targeted clearing removes the selected cuff/pulse type from both
+  stores to prevent reimport. Clearing camera records leaves cuff/pulse data intact.
+
+Details: `docs/reviews_and_suggestions/duplicate_records_fix.md`.
+
+## Local measurement-result UI changes
+
+The user requested a proposed layout first, then implementation and checks.
+That proposal was shown, and the following is implemented:
+
+- Camera result heading: “Camera PPG estimate · Experimental.”
+- Caution immediately beneath the camera pressure value:
+  “Confirm with a validated upper-arm cuff. This camera estimate is not a medical measurement.”
+- Pulse and signal-quality information occupy separate blocks, stacking on narrow
+  screens. Camera pressure uses neutral text, without a normal/high badge.
+- “Enter cuff reading” is a native button that focuses the existing systolic input.
+- Successful cuff saves show a separate “Cuff reading” card with pressure, pulse,
+  save time, and “Source: User-entered cuff reading.” It uses the existing payload;
+  no additional storage writes or schema changes were introduced.
+- The saved card is cleared from the display when starting another recording or
+  clearing cuff history. It is a current-result display, not a new persistent history.
+- English/Simplified Chinese labels, caution, cuff details, and camera details
+  update with language selection. Failure headings remain failure headings.
+- Headings, labelled regions, existing labelled inputs and save status, and visible
+  keyboard focus support accessibility. Styling is scoped to the meter result and
+  uses theme variables for Classic, Ivory, and Sheets.
+
+Changed files awaiting commit:
+
+- `src/blood_measure/web/index.html` — result structure, caution, focus action, cuff card.
+- `src/blood_measure/web/app.js` — presentation state, rendering, focus, translations.
+- `src/blood_measure/web/styles.css` — scoped responsive result styles.
+- `tests/measurement_result.test.cjs` — six new executable UI regression cases.
+- `tests/test_measurement_store.py` — pytest now runs both JavaScript suites.
+- `tests/test_web_assets.py` — updated expected camera label/caution wording.
+- `HANDOFF.md` — this update.
+
+Unrelated `.DS_Store` changes exist at the root and in `src/`, plus an untracked
+`docs/.DS_Store`. Leave these out of task commits.
+
+## Verification completed
+
+Latest local UI verification on 2026-10-11:
+
+- `.venv/bin/python -m pytest -q`: **41 passed**, no skips. This includes wrappers
+  executing **27 JavaScript cases**: 21 store cases and six new result-UI cases.
+- `node --check` on all 16 web JavaScript files: passed.
+- `.venv/bin/python -m compileall -q src tests`: passed.
+- `git diff --check`: passed.
+- UI cases cover focus, saved-card content and unchanged payload, failed/invalid
+  saves, language switching, failure headings, and accessible markup/order.
+- Native Safari successfully displayed isolated synthetic result fixtures at
+  360px width in Classic, Ivory, and Sheets, including Chinese content. Visual
+  inspection confirmed separate camera/cuff cards, caution, timestamp, and source.
+- Safari accessibility state exposed headings, labelled fields, caution and cuff
+  regions. The cuff-entry action focused systolic; Tab progressed to diastolic.
+- Preview fixtures used synthetic data and a page-local storage stub, not the
+  user's existing readings. Temporary previews are under `/tmp/blood-result-*.html`;
+  they are snapshots, not tracked production assets, and may become stale.
+
+Verification limits:
+
+- Earlier headless Chrome dashboard runs timed out twice after 45 seconds. The
+  cause remains undetermined. `tests/check_dashboard_browser.py` is the runner;
+  do not report those seven browser scenarios as passing. Safari result-preview
+  checks do not replace those dashboard regression checks.
+- Full screen-reader testing, real-device camera/paired-cuff testing, and mobile
+  installation/offline update testing remain outstanding.
+- Existing multi-tab localStorage races, non-atomic clears, normal new-record
+  retention, and general storage-error handling remain outside this fix.
+
+## Local server
+
+The user reported that <http://localhost:8001/> was unreachable. No server was
+listening. It was started and the returned HTML was checked for the new result UI.
+
+At handoff, PID `55526` listens on `127.0.0.1:8001`. This is a running development
+process, not a persistent login service; check before starting another instance:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e '.[dev]'
-pytest
-blood-measure-web
+lsof -nP -iTCP:8001 -sTCP:LISTEN
 ```
 
-For phone testing, use HTTPS as described in `deploy/README.md`; remote mobile
-browsers will not grant camera access to an ordinary HTTP origin.
+Start it from the repository when needed:
 
-## Important files
+```bash
+.venv/bin/python -u -m blood_measure.web_server --host 127.0.0.1 --port 8001
+```
 
-- `src/blood_measure/web/app.js` — primary short-recording and cuff workflow.
-- `src/blood_measure/web/ppg-analysis.js` — shared PPG signal analysis.
-- `src/blood_measure/web/pulse.js` — 60-second pulse and PRV workflow.
-- `src/blood_measure/web/measurement-store.js` — browser-local records.
-- `tests/test_web_assets.py` — static integration and safety wording checks.
-- `IMPLEMENTATION_PROGRESS.md` — earlier calibration implementation record.
+The sandbox initially blocked the listening socket; an escalated run succeeded.
+The local server serves current source files. Localhost and GitHub Pages have
+separate browser storage origins. Phone access requires an appropriate HTTPS setup;
+see `deploy/README.md`.
 
-## Known constraints
+## Commands and next steps
 
-- Results vary by phone camera, flash behavior, exposure, contact pressure,
-  motion, skin temperature, and recording conditions.
-- Personal adjustment begins only after sufficient usable cuff comparisons and
-  does not create a clinically validated measurement.
-- Measurement history is stored in the browser and can be lost if site data is
-  cleared unless it is exported first.
+```bash
+.venv/bin/python -m pytest -q
+node --test tests/measurement_store.test.cjs tests/measurement_result.test.cjs
+.venv/bin/python -m compileall -q src tests
+git diff --check
+```
 
-## Latest verification
-
-- Finding 1 (duplicate cuff/pulse dashboard records) is confirmed and fixed by
-  incremental, retryable reconciliation. Legacy histories, exports, calibration,
-  and dual-writing are preserved; migration never deletes legacy data.
-- Dashboard reports incomplete migration in English and Chinese.
-- Full automated suite: `40 passed` on 2026-10-11, including 21 executable
-  JavaScript regression cases. All 16 web JavaScript syntax checks, Python
-  compilation, and diff whitespace checks passed.
-- Real Chrome dashboard checks remain unverified: two isolated headless runs
-  timed out after 45 seconds. The runner is `tests/check_dashboard_browser.py`.
-- Offline cache version advanced to v25 for the dashboard fix. The deployed
-  Git revision identifies this update; the app version remains 0.9.4.
-- Real-phone camera and paired-cuff verification remains outstanding.
-- See `docs/reviews_and_suggestions/duplicate_records_fix.md` for migration
-  details and limitations. Other review findings are not independently verified.
-
-## Next tasks
-
-1. Resolve the local headless Chrome timeout and run the dashboard browser checks.
-2. Perform a real-phone smoke test covering permission, good and poor signals,
-   three cuff pairs, history, export, reload, installation, and offline use.
-3. Review remaining findings separately before expanding the scope of fixes.
+1. Review the current result UI at localhost; preserve the behavior boundaries above.
+2. If asked to publish this UI change, commit only the relevant files, bump the
+   service-worker cache for refreshed assets, and push `main`. The existing
+   `.github/workflows/pages.yml` deploys `src/blood_measure/web` and stamps
+   `version.js` with the commit revision. Verify workflow success and live assets.
+   No UI publication has occurred yet.
+3. Complete real-device and assistive-technology checks, and resolve the separate
+   Chrome dashboard runner timeout without claiming unperformed checks passed.
+4. Review other findings only as separately scoped work.

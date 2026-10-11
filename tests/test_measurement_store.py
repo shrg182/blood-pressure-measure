@@ -6,12 +6,13 @@ import subprocess
 import pytest
 
 
-def test_measurement_store_regressions():
+@pytest.mark.parametrize("script", ["measurement_store.test.cjs", "measurement_result.test.cjs"])
+def test_measurement_store_regressions(script):
     node = shutil.which("node")
     if node is None:
         pytest.skip("Node.js is required for executable measurement-store regression tests")
     result = subprocess.run(
-        [node, "--test", "tests/measurement_store.test.cjs"],
+        [node, "--test", f"tests/{script}"],
         cwd=Path(__file__).resolve().parents[1],
         capture_output=True,
         text=True,
