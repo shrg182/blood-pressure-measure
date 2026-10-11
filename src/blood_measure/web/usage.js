@@ -17,7 +17,7 @@ const TRANSLATIONS = {
     limitationTitle: "Important limitation", limitationText: "A phone camera detects a pulse waveform and cannot directly measure blood pressure. Personal adjustment only changes the displayed estimate and does not make it a medical measurement. Confirm every health decision or unusual reading with a validated upper-arm cuff or a clinician.",
     privacyTitle: "Privacy and saved readings", privacyText: "Paired readings and preferences stay in this browser. Export readings before clearing browser data if you want to keep a copy.",
     versionTitle: "Version and updates", versionDetails: "Blood Measure {version} · build {revision} · {released}",
-    updateNotChecked: "Update status not checked.", checkingUpdates: "Checking for updates…", upToDate: "This app is up to date.",
+    localBuild: "Local development build. Reload to see local changes.", updateNotChecked: "Update status not checked.", checkingUpdates: "Checking for updates…", upToDate: "This app is up to date.",
     updateReady: "An update is ready. Reload to use it.", updateOffline: "Offline—connect to the internet to check for updates.",
     updateFailed: "The update check could not be completed.", checkUpdates: "Check for updates", reloadUpdate: "Reload to update",
     startNow: "Go to meter"
@@ -34,7 +34,7 @@ const TRANSLATIONS = {
     limitationTitle: "重要限制", limitationText: "手机摄像头只能检测脉搏波，无法直接测量血压。个人调整只会改变显示的估计值，不会使其成为医疗测量。任何健康决定或异常读数都应使用经过验证的上臂式血压计或咨询医生确认。",
     privacyTitle: "隐私与保存的读数", privacyText: "配对读数和偏好设置仅保存在此浏览器中。如果需要保留副本，请在清除浏览器数据前导出读数。",
     versionTitle: "版本与更新", versionDetails: "血压测量 {version} · 构建 {revision} · {released}",
-    updateNotChecked: "尚未检查更新。", checkingUpdates: "正在检查更新…", upToDate: "应用已是最新版本。",
+    localBuild: "本地开发版本。请重新加载以查看本地更改。", updateNotChecked: "尚未检查更新。", checkingUpdates: "正在检查更新…", upToDate: "应用已是最新版本。",
     updateReady: "更新已准备好。请重新加载以使用新版本。", updateOffline: "当前离线——请连接互联网后检查更新。",
     updateFailed: "无法完成更新检查。", checkUpdates: "检查更新", reloadUpdate: "重新加载并更新", startNow: "前往测量"
   }
@@ -47,7 +47,11 @@ const versionDetails = document.querySelector("#versionDetails");
 const updateStatus = document.querySelector("#updateStatus");
 const checkUpdateButton = document.querySelector("#checkUpdateButton");
 const reloadUpdateButton = document.querySelector("#reloadUpdateButton");
-let updateState = "updateNotChecked";
+function isLocalBuild() {
+  const revision = window.BLOOD_MEASURE_BUILD?.revision;
+  return !revision || revision === "local" || revision.startsWith("__");
+}
+let updateState = isLocalBuild() ? "localBuild" : "updateNotChecked";
 let checkingForUpdate = false;
 
 function t(key, values = {}) {
@@ -78,6 +82,10 @@ function setUpdateState(state) {
 }
 
 async function checkForUpdates() {
+  if (isLocalBuild()) {
+    setUpdateState("localBuild");
+    return;
+  }
   if (!navigator.onLine || !("serviceWorker" in navigator)) {
     setUpdateState("updateOffline");
     return;

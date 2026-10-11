@@ -6,14 +6,15 @@ Last updated: 2026-10-11 (America/Detroit)
 
 Repository: `https://github.com/shrg182/blood-pressure-measure`, branch `main`.
 
-- Latest committed and published revision: `1259df062cde1bc41c08e73bac5aad33596b3c47`
-  — `Fix duplicate dashboard cuff and pulse records with safe reconciliation`.
-- GitHub Pages deployment succeeded. Live `version.js` reported `1259df0`, and
-  the deployed store, dashboard HTML/JS, and service worker matched local files.
+- Dashboard reconciliation was published as `1259df0`.
+- Measurement-result UI changes were committed as `5b6dec9` (Stage one is completed).
+- This release prepares app version **0.9.5**, dated **2026-10-11**, and offline
+  cache `blood-measure-v26`, including those dashboard and UI improvements.
+- Local builds now say “Local development build” (English/Chinese) instead of
+  claiming to be up to date. Published builds retain the service-worker check.
 - Live site: <https://shrg182.github.io/blood-pressure-measure/>.
-- App version remains `0.9.4`; offline cache is `blood-measure-v25`.
-- The measurement-result UI improvements described below are implemented locally,
-  tested, and **not yet committed or published**. This handoff update is also local.
+- Deployment runs on pushes to main. For this release, verify GitHub Actions and
+  the live version/revision after pushing; the current commit hash is stamped by CI.
 
 ## Scope and safety constraints
 
@@ -55,7 +56,7 @@ four records because legacy and consolidated copies had different ID prefixes.
 
 Details: `docs/reviews_and_suggestions/duplicate_records_fix.md`.
 
-## Local measurement-result UI changes
+## Measurement-result UI changes
 
 The user requested a proposed layout first, then implementation and checks.
 That proposal was shown, and the following is implemented:
@@ -77,7 +78,7 @@ That proposal was shown, and the following is implemented:
   keyboard focus support accessibility. Styling is scoped to the meter result and
   uses theme variables for Classic, Ivory, and Sheets.
 
-Changed files awaiting commit:
+UI implementation files (committed in `5b6dec9`):
 
 - `src/blood_measure/web/index.html` — result structure, caution, focus action, cuff card.
 - `src/blood_measure/web/app.js` — presentation state, rendering, focus, translations.
@@ -85,7 +86,7 @@ Changed files awaiting commit:
 - `tests/measurement_result.test.cjs` — six new executable UI regression cases.
 - `tests/test_measurement_store.py` — pytest now runs both JavaScript suites.
 - `tests/test_web_assets.py` — updated expected camera label/caution wording.
-- `HANDOFF.md` — this update.
+- `HANDOFF.md` — project state and verification notes.
 
 Unrelated `.DS_Store` changes exist at the root and in `src/`, plus an untracked
 `docs/.DS_Store`. Leave these out of task commits.
@@ -94,8 +95,8 @@ Unrelated `.DS_Store` changes exist at the root and in `src/`, plus an untracked
 
 Latest local UI verification on 2026-10-11:
 
-- `.venv/bin/python -m pytest -q`: **41 passed**, no skips. This includes wrappers
-  executing **27 JavaScript cases**: 21 store cases and six new result-UI cases.
+- `.venv/bin/python -m pytest -q`: **42 passed**, no skips. This includes wrappers
+  executing **29 JavaScript cases**: 21 store cases, six result-UI cases, and two release/update-status cases.
 - `node --check` on all 16 web JavaScript files: passed.
 - `.venv/bin/python -m compileall -q src tests`: passed.
 - `git diff --check`: passed.
@@ -126,7 +127,7 @@ Verification limits:
 The user reported that <http://localhost:8001/> was unreachable. No server was
 listening. It was started and the returned HTML was checked for the new result UI.
 
-At handoff, PID `55526` listens on `127.0.0.1:8001`. This is a running development
+The server was started on `127.0.0.1:8001` during this session. It is a development
 process, not a persistent login service; check before starting another instance:
 
 ```bash
@@ -148,17 +149,12 @@ see `deploy/README.md`.
 
 ```bash
 .venv/bin/python -m pytest -q
-node --test tests/measurement_store.test.cjs tests/measurement_result.test.cjs
+node --test tests/measurement_store.test.cjs tests/measurement_result.test.cjs tests/usage_updates.test.cjs
 .venv/bin/python -m compileall -q src tests
 git diff --check
 ```
 
-1. Review the current result UI at localhost; preserve the behavior boundaries above.
-2. If asked to publish this UI change, commit only the relevant files, bump the
-   service-worker cache for refreshed assets, and push `main`. The existing
-   `.github/workflows/pages.yml` deploys `src/blood_measure/web` and stamps
-   `version.js` with the commit revision. Verify workflow success and live assets.
-   No UI publication has occurred yet.
-3. Complete real-device and assistive-technology checks, and resolve the separate
+1. Verify the 0.9.5 deployment and live version/revision after pushing this release.
+2. Complete real-device and assistive-technology checks, and resolve the separate
    Chrome dashboard runner timeout without claiming unperformed checks passed.
-4. Review other findings only as separately scoped work.
+3. Review other findings only as separately scoped work.

@@ -6,7 +6,7 @@ import subprocess
 import pytest
 
 
-@pytest.mark.parametrize("script", ["measurement_store.test.cjs", "measurement_result.test.cjs"])
+@pytest.mark.parametrize("script", ["measurement_store.test.cjs", "measurement_result.test.cjs", "usage_updates.test.cjs"])
 def test_measurement_store_regressions(script):
     node = shutil.which("node")
     if node is None:
